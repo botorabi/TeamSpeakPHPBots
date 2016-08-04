@@ -46,7 +46,7 @@ class ServerBotAction {
         $this->botManager = $botManager;
         // setup the command handlers
         $this->commands["botadd"]    = array($this->botManager, "notifyBotAdd");
-        $this->commands["botupdate"] = array($this->botManager, "notifyBotUpdateConfig");
+        $this->commands["botupdate"] = array($this->botManager, "notifyBotUpdate");
         $this->commands["botdelete"] = array($this->botManager, "notifyBotDelete");
     }
 
@@ -65,7 +65,7 @@ class ServerBotAction {
 
         $result = null;
         if ($this->parseCmd($reqMsg, $result)) {
-            Log::debug(self::$TAG, "bot command was dispatched");
+            //Log::debug(self::$TAG, "bot command was dispatched");
         }
         return $result;
     }
@@ -85,8 +85,8 @@ class ServerBotAction {
         }
 
         $cmd     = trim($elems[0]);
-        $botid   = (int)trim($elems[1]);
-        $bottype = trim($elems[2]);
+        $bottype = trim($elems[1]);
+        $botid   = (int)trim($elems[2]);
         if (!is_numeric($botid)) {
             return false;
         }

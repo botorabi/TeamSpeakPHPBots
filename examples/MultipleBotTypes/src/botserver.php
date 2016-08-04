@@ -200,8 +200,9 @@ class App {
             $vserver->notifyRegister("channel");
             //$vserver->notifyRegister("server");
             //$vserver->notifyRegister("textserver");
-            //$vserver->notifyRegister("textchannel");
-            //$vserver->notifyRegister("textprivate");
+            // we are also interested in text messages for the ChatBot
+            $vserver->notifyRegister("textchannel");
+            $vserver->notifyRegister("textprivate");
         }
         catch(Exception $e)
         {
@@ -214,6 +215,8 @@ class App {
         
         // register our GreetingBot, perfere to use forward slashes in order to avoid specifying special chars by accident
         $this->botManager->registerBotClass("com/examples/bots/greetingbot/GreetingBot");
+        // regiser the ChatBot
+        $this->botManager->registerBotClass("com/examples/bots/chatbot/ChatBot");
         
         // load and setup bots from database
         $this->botManager->loadBots();

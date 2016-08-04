@@ -24,7 +24,7 @@ abstract class Configuration {
     public static  $TSPHPBOT_CONFIG_TS3SERVER_QUERY = [
         "host"          => "localhost",
         "userName"      => "serveradmin",       // TODO put your TS3 user name here
-        "password"      => "+fdiuHLI",                  // TODO put your TS3 user password here
+        "password"      => "exffRAo3",          // TODO put your TS3 user password here
         "hostPort"      => 10011,
         "vServerPort"   => 9987,
         "pollInterval"  => 2,                   // intervall of bot control steps in seconds
@@ -36,8 +36,8 @@ abstract class Configuration {
         "host"          => "localhost",
         "hostPort"      => 3306,
         "dbName"        => "tsphpbots",
-        "userName"      => "tsphpbotservice",
-        "password"      => "tsphpbotservice",
+        "userName"      => "tsphpbotserver",
+        "password"      => "tsphpbotserver",
         "tablePrefix"   => "tsphpbots_"
     ];
 

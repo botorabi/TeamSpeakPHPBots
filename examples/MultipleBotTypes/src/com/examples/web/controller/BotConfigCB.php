@@ -15,11 +15,12 @@ use com\tsphpbots\utils\Log;
 
 /**
  * Page controller for bot ChatBot
+ * NOTE: This controller has no template, it is a pure REST interface.
  * 
  * First Created:  22th June 2016
  * Author:         boto
  */
-class BotConfigGB extends BaseController {
+class BotConfigCB extends BaseController {
 
     /**
      * @var string Log tag
@@ -27,12 +28,13 @@ class BotConfigGB extends BaseController {
     protected static $TAG = "BotConfigCB";
 
     /**
-     * @var string Class name used for automatically find the proper template
+     * @var string  Main page, will be used for login if not already done
      */
-    public $renderClassName = "BotConfigCB";
-
     protected $renderMainClass  = "Main";
 
+    /**
+     * @var array A Summary of bot information
+     */
     protected $botSummaryFields = ["id", "botType", "name", "description", "active"];
 
     /**
@@ -93,7 +95,7 @@ class BotConfigGB extends BaseController {
             $this->cmdDeleteBot($params);
         }
         else {
-            $this->renderView($this->renderClassName, null);
+            Log::printEcho(json_encode(["result" => "nok", "reason" => "unsupported request"]));
         }
     }
 
@@ -209,6 +211,9 @@ class BotConfigGB extends BaseController {
         }
         if (isset($params["nickName"])) {
             $bot->setFieldValue("nickName", $this->getParamString($params, "nickName", ""));
+        }
+        if (isset($params["channelID"])) {
+            $bot->setFieldValue("channelID", $this->getParamNummeric($params, "channelID", ""));
         }
 
         if ($bot->update() === false) {

@@ -40,6 +40,8 @@ class ChatBotModel extends DBObject {
      *   name                           Bot name
      *   description                    A short bot description
      *   active                         Enable/disable the bot (1/0)
+     *   nickName                       Bot's nick name
+     *   channelID                      Channel ID, the bot will reside in this channel
      */
     public function setupFields() {
         $this->objectFields["botType"]       = self::$BOT_TYPE_NAME;
@@ -47,6 +49,7 @@ class ChatBotModel extends DBObject {
         $this->objectFields["description"]   = "";
         $this->objectFields["active"]        = 0;
         $this->objectFields["nickName"]      = "";
+        $this->objectFields["channelID"]     = 0;
     }
 
     /**

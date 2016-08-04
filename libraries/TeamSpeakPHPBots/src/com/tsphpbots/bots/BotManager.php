@@ -75,7 +75,7 @@ class BotManager {
     public function findBotClass($botType) {
         $foundclass = null;
         foreach($this->botClasses as $botclass) {
-            if (strpos($botType, $botclass) !== false) {
+            if (strpos($botclass, $botType) !== false) {
                 $foundclass = $botclass;
                 break;
             }
@@ -173,7 +173,8 @@ class BotManager {
      * @param int $id           The bot ID
      * @return boolean          Return true if the bot was found and updated successfully, otherwise false.
      */
-    public function notifyBotUpdateConfig($botType, $id) {
+    public function notifyBotUpdate($botType, $id) {
+        Log::verbose(self::$TAG, "notify bot update: " . $botType . ", " . $id);
         foreach($this->bots as $bot) {
             if ((strcmp($botType, $bot->getType()) === 0) && ($bot->getID() == $id)) {
                 $bot->onConfigUpdate();
@@ -191,8 +192,10 @@ class BotManager {
      * @return boolean          Return true if the bot was found and deleted successfully, otherwise false.
      */
     public function notifyBotAdd($botType, $id) {
+        Log::verbose(self::$TAG, "notify bot add: " . $botType . ", " . $id);
         $botclass = $this->findBotClass($botType);
         if (is_null($botclass)) {
+            Log::warning(self::$TAG, " could not find bot class!");
             return false;
         }
 
@@ -225,8 +228,10 @@ class BotManager {
      * @return boolean          Return true if the bot was found and deleted successfully, otherwise false.
      */
     public function notifyBotDelete($botType, $id) {
+        Log::verbose(self::$TAG, "notify bot delete: " . $botType . ", " . $id);
         foreach($this->bots as $key => $bot) {
             if ((strcmp($botType, $bot->getType()) === 0) && ($bot->getID() == $id)) {
+                Log::verbose(self::$TAG, "deleting bot");
                 unset($this->bots[$key]);
                 return true;
             }

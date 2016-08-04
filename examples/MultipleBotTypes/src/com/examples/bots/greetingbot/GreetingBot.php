@@ -27,18 +27,13 @@ class GreetingBot extends BotBase {
     protected static $TAG = "GreetingBot";
 
     /**
-     * @var sting Bot type
-     */
-    public static $BOT_TYPE = "GreetingBot";
-
-    /**
      *
      * @var GreetingBotModel  Database model of the bot. All bot paramerers are hold here.
      */
     protected $model = null;
 
     /**
-     * Construct a greeting bot.
+     * Construct a monitor bot.
      * 
      * @param  $server      TS3 server object
      * @throws Exception    Throws exception if the given server is invalid.
@@ -68,7 +63,7 @@ class GreetingBot extends BotBase {
      * @return string       The bot type
      */
     public function getType() {
-        return self::$BOT_TYPE;
+        return $this->model->botType;
     }
 
     /**
@@ -122,12 +117,11 @@ class GreetingBot extends BotBase {
             return false;
         }
 
-        if (strlen(trim($this->model->greetingText)) === 0) {
+        Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
+
+        if (strlen($this->model->greetingText) === 0) {
             Log::warning(self::$TAG, "empty greeting text detected, deactivating the bot!");
             $this->model->active = false;
-        }
-        else {
-            Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
         }
 
         return true;

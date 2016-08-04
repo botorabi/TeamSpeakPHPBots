@@ -8,7 +8,7 @@
  */
 
 namespace com\examples\bots\chatbot;
-use com\examples\bots\chatbot\GreetingBotModel;
+use com\examples\bots\chatbot\ChatBotModel;
 use com\tsphpbots\bots\BotBase;
 use com\tsphpbots\utils\Log;
 
@@ -25,11 +25,6 @@ class ChatBot extends BotBase {
      * @var string  This tag is used for logs
      */
     protected static $TAG = "ChatBot";
-
-    /**
-     * @var sting Bot type
-     */
-    public static $BOT_TYPE = "ChatBot";
 
     /**
      *
@@ -68,7 +63,7 @@ class ChatBot extends BotBase {
      * @return string       The bot type
      */
     public function getType() {
-        return self::$BOT_TYPE;
+        return $this->model->botType;
     }
 
     /**
@@ -122,7 +117,7 @@ class ChatBot extends BotBase {
             return false;
         }
 
-        if (strlen(trim($this->model->greetingText)) === 0) {
+        if (strlen(trim($this->model->nickName)) === 0) {
             Log::warning(self::$TAG, "empty nick name detected, deactivating the bot!");
             $this->model->active = false;
         }
@@ -162,26 +157,20 @@ class ChatBot extends BotBase {
      */
     public function onServerEvent($event, $host) {
 
-        if (strcmp($event->getType(), "cliententerview") === 0) {
+        //! TODO
 
-            $data = $event->getData();
-            $clid = $data["clid"];
-            $clnick = $data["client_nickname"];
-
-            Log::verbose(self::$TAG, "going to greet a new client: " . $clnick);
+        Log::verbose(self::$TAG, "bot '" . $this->model->name . "' got event: " . $event->getType());
+        if (strcmp($event->getType(), "textmessage") === 0) {
 /*
-            try {
-                // get the client
-                $client = $this->ts3Server->clientGetById($clid);
-                // assemble the final greeting
-                $text = str_replace("<nick>", $clnick, $this->model->greetingText);
-                // send the text to the client
-                $client->message($text);
+            $data = $event->getData();            
+            Log::verbose(self::$TAG, " got message from: " . print_r($host->whoami("client_unique_identifier"), true));
+            Log::verbose(self::$TAG, " got message from involer: " . print_r($event["invokeruid"], true));
+            $client = "" . $host->whoami("client_unique_identifier");
+            $invoker = "" . $event["invokeruid"];
+            if($client != $invoker) {
+                $host->serverGetSelected()->clientGetByUid($event["invokeruid"])->message("Pong!");
             }
-            catch (Exception $ex) {
-                Log::debug(self::$TAG, "Hmm, I did not have the possibility to greet the new client :-/");
-            }
- */
+*/
         }
     }
 
@@ -196,7 +185,7 @@ class ChatBot extends BotBase {
         if ($this->model->active == 0) {
             return;
         }
-
+        //! TODO we may want to drop a line after a while without any conversation
         //Log::verbose(self::$TAG, "bot " . $this->getName() . " was updated");
     }
 }

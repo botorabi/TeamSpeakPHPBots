@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>TeamSpeakPHPBots Example: Greeting Bot</title>
+		<title>TeamSpeakPHPBots Example: Multiple Bot Types</title>
 		<link href="/favicon.ico" type="image/x-icon" rel="icon" />
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,13 +45,13 @@
 				if (leftTime > 0) {
 					if (leftTime > 60) {
 						var t = Math.floor(leftTime/60);
-						var plural = t > 1 ? "n" : "";
-						$("#timeleftId").html(" [Logout in " + t + " Minute" + plural + "]");
+						var plural = t > 1 ? "s" : "";
+						$("#timeleftId").html(" [Logout in " + t + " minute" + plural + "]");
 					}
 					else {
 						timeoutCheckIntv = 1000;
-						var plural = leftTime > 1 ? "n" : "";
-						$("#timeleftId").html(" [Logout in " + leftTime + " Sekunde" + plural + "]");
+						var plural = leftTime > 1 ? "s" : "";
+						$("#timeleftId").html(" [Logout in " + leftTime + " second" + plural + "]");
 					}
 				}
 				else {
@@ -217,10 +217,10 @@
 					width: 300,
 					modal: true,
 					buttons:{
-						"Abbrechen": function(event) {
+						"Cancel": function(event) {
 							$(this).dialog( "close" );
 						},
-						"Anmelden": function(event) {
+						"Login": function(event) {
 							processLogin();
 						}
 					}
@@ -243,7 +243,7 @@
 					width: 300,
 					modal: true,
 					buttons:{
-						"OK": function(event) {
+						"Ok": function(event) {
 							$(this).dialog( "close" );
 							window.location.href='?page=Main&login=';
 						}
@@ -271,7 +271,7 @@
 				<img id="menubtnId" src="<!--dirImages-->/menu.png" alt="Menu" title="Menu" onclick="onMenuClicked(event);">
 			</div>
 			<div id="backbtnId" class="backimg" style="display: none;">
-				<img src="<!--dirImages-->/menuback.png" alt="Hauptseite" title="Main" onclick="window.location.href='?page=Main';">
+				<img src="<!--dirImages-->/menuback.png" alt="Main Page" title="Main" onclick="window.location.href='?page=Main';">
 			</div>
 			<ul class ="menu" id="menuDropdownId" style='display: none;'>
 				<li id="menuUserName">Hi <!--userName--></li>
@@ -287,7 +287,7 @@
 				<li><img src="<!--dirImages-->/logo.png" alt="Logo"></li>
 			</ul>
 
-			<div class="headline">TeamSpeakPHPBots<br>Example App: Greeting Bot</div>
+			<div class="headline">TeamSpeakPHPBots<br>Example App: Multiple Bot Types</div>
 		</div>
 
 		<div id="dialogAboutId" style="display: none; text-align: center;" title="About">
@@ -309,7 +309,7 @@
 				<input type="submit" tabindex="-1" style="display: none;">
 			</form>
 		</div>
-		<div id="dialogSessionExpiredId" title="Sitzung ist abgelaufen." style="display: none;" class="inputDialog">
+		<div id="dialogSessionExpiredId" title="Session Timeout" style="display: none;" class="inputDialog">
 			<form id="sessionForm">
 				<p>Session was closed.<br>Please, login again.</p>
 				<input type="submit" tabindex="-1" style="display: none;">

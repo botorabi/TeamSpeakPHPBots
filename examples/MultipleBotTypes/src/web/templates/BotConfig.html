@@ -1,28 +1,30 @@
 <!--INCLUDE:Head.html-->
 <script>
-	
+
+	var GREETING_BOT_CTRL_PAGE = "BotConfigGB";
+	var CHAT_BOT_CTRL_PAGE     = "BotConfigCB";
 	function initContent() {
 		$("#backbtnId").show();
-		setupBotLists("BotConfigGB", "tableGreetingBotId");
-		setupBotLists("BotConfigCB", "tableChatBotId");
+		setupBotLists(GREETING_BOT_CTRL_PAGE, "table" + GREETING_BOT_CTRL_PAGE);
+		setupBotLists(CHAT_BOT_CTRL_PAGE, "table" + CHAT_BOT_CTRL_PAGE);
 	}
 
-	function setupBotLists(botType, tableId) {
-		REST.getBotList(botType, function (res) {
+	function setupBotLists(botCtrlPage, tableId) {
+		REST.getBotList(botCtrlPage, function (res) {
 			if (res.result === "ok") {
-				LAYOUT.putBotList(botType, tableId, res.data, function (op, botType, id) {
+				LAYOUT.putBotList(botCtrlPage, tableId, res.data, function (op, botCtrlPage, botType, id) {
 					switch(op) {
 						case "delete":
-							botDelete(botType, id);
+							botDelete(botCtrlPage, botType, id);
 							break;
 						case "modify":
-							botModify(botType, id);
+							botModify(botCtrlPage, botType, id);
 							break;
 						case "enableBot":
-							botEnable(botType, id, true);
+							botEnable(botCtrlPage, botType, id, true);
 							break;
 						case "disableBot":
-							botEnable(botType, id, false);
+							botEnable(botCtrlPage, botType, id, false);
 							break;
 						default:
 							;
@@ -32,9 +34,10 @@
 		});
 	}
 
-	function processBotCreate(botType) {
-		REST.createBot(botType, "botFormId", function(res) {
+	function processBotCreate(botCtrlPage) {
+		REST.createBot(botCtrlPage, "form" + botCtrlPage, function(res) {
 			if (res.result === "ok") {
+				notifyServiceBotAdd(res.data.botType, res.data.id);
 				showMessageDialog("New Bot", "Bot was successfully created.", "Ok",  function() {
 					location.reload();				
 				});
@@ -47,13 +50,13 @@
 		});
 	}
 
-	function processBotModify(botType, id) {
-		REST.updateBot(botType, id, "botFormId", function(res) {
+	function processBotModify(botCtrlPage, botType, id) {
+		REST.updateBot(botCtrlPage, id, "form" + botCtrlPage, function(res) {
 			if (res.result === "ok") {
 				showMessageDialog("Bot Configuration", "Bot was successfully updated.", "Ok",  function() {
 					location.reload();				
 				});
-				notifyServiceBotUpdate(id);
+				notifyServiceBotUpdate(botType, id);
 			}
 			else {
 				showMessageDialog("Bot Configuration", "Bot could not be updated!\nReason: " + res.reason, "Ok",  function() {
@@ -70,9 +73,10 @@
 		event.stopPropagation();
 	}
 
-	function botNew(botType) {
-		$("#dialogBotId").show();
-		var dlg = $("#dialogBotId").dialog({
+	function botNew(botCtrlPage) {
+		var elemdlgsel = "#dialog" + botCtrlPage;
+		$(elemdlgsel).show();
+		var dlg = $(elemdlgsel).dialog({
 			dialogClass: "no-close",
 			draggable: false,
 			autoOpen: false,
@@ -84,27 +88,29 @@
 					$(this).dialog( "close" );
 				},
 				"Create": function(event) {
-					processBotCreate(botType);
+					processBotCreate(botCtrlPage);
 				}
 			}
 		});
 		dlg.find("form").on("submit", function(event) {
 			event.preventDefault();
-			processBotCreate(botType);
+			processBotCreate(botCtrlPage);
 		});
 		dlg.dialog("open");
 		dlg.dialog("moveToTop");
 	}
 
-	function botModify(botType, id) {
-		REST.getBot(botType, id, function(res) {
+	function botModify(botCtrlPage, botType, id) {
+		REST.getBot(botCtrlPage, id, function(res) {
 			if (res.result === "ok") {
 				// fill the form inputs
+				var elemformsel = "#form" + botCtrlPage;
 				$.each(res.data, function(field, value) {
-					$('#botFormId :input[name="' + field + '"]').val(value);
+					$(elemformsel + ' :input[name="' + field + '"]').val(value);
 				});
-				$("#dialogBotId").show();
-				var dlg = $("#dialogBotId").dialog({
+				var elemdlgsel = "#dialog" + botCtrlPage;
+				$(elemdlgsel).show();
+				var dlg = $(elemdlgsel).dialog({
 					dialogClass: "no-close",
 					draggable: false,
 					autoOpen: false,
@@ -117,13 +123,13 @@
 						},
 						"Apply": function(event) {
 							$(this).dialog( "close" );
-							processBotModify(botType, res.data.id);
+							processBotModify(botCtrlPage, botType, res.data.id);
 						}
 					}
 				});
 				dlg.find("form").on("submit", function(event) {
 					event.preventDefault();
-					processBotModify(botType, res.data.id);
+					processBotModify(botCtrlPage, botType, res.data.id);
 				});
 				dlg.dialog("open");
 				dlg.dialog("moveToTop");
@@ -134,12 +140,13 @@
 		});
 	}
 
-	function botDelete(botType, id) {
+	function botDelete(botCtrlPage, botType, id) {
 		showMessageDialog("Delete Bot", "Do you really want to delete the bot?",
 		"No", null,
 		"Yes", function() {
-			REST.deleteBot(botType, id, function (res) {
+			REST.deleteBot(botCtrlPage, id, function (res) {
 				if (res.result === "ok") {
+					notifyServiceBotDelete(botType, id);
 					showMessageDialog("Delete Bot", "Bot was successfully deleted.", "Ok", function() {
 						location.reload();				
 					});
@@ -151,16 +158,11 @@
 		});
 	}
 
-	function notifyServiceBotUpdate(id) {
-		REST.botServiceUpdateBot(id, function(res) {
-		});
-	}
-
-	function botEnable(botType, id, enable) {
-		REST.enableBot(botType, id, enable, function (res) {
+	function botEnable(botCtrlPage, botType, id, enable) {
+		REST.enableBot(botCtrlPage, id, enable, function (res) {
 			if (res.result === "ok") {
 				setTimeout(function() {
-					notifyServiceBotUpdate(id);
+					notifyServiceBotUpdate(botType, id);
 				}, 500);
 			}
 			else {
@@ -169,15 +171,32 @@
 			}
 		});
 	}
+
+	function notifyServiceBotAdd(botType, id) {
+		REST.botServiceAddBot(botType, id, function(res) {
+		});
+	}
+
+	function notifyServiceBotUpdate(botType, id) {
+		REST.botServiceUpdateBot(botType, id, function(res) {
+		});
+	}
+
+	function notifyServiceBotDelete(botType, id) {
+		REST.botServiceDeleteBot(botType, id, function(res) {
+		});
+	}
+
 </script>
 <div id="maincontentId" class="maincontent">
+	<!-- Greeting Bot -->
 	<div class="contentbots">
-		<table id="tableGreetingBotId" class="tablebots">
+		<table id="tableBotConfigGB" class="tablebots">
 			<tr>
 				<td class="head">Greeting Bots</td>
 				<td class="head"></td>
 				<td class="head"></td>
-				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="Neuer Bot" title="Neuer Bot" onclick="botNew();"></td>
+				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="New Greeting Bot" title="New Greeting Bot" onclick="botNew('BotConfigGB');"></td>
 				<td class="head" style="width: 40px;"></td>
 			</tr>
 			<tr>
@@ -189,25 +208,27 @@
 			</tr>
 		</table>
 	</div>
-	<div id="dialogGreetingBotId" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
-		<form id="greetintBotFormId">
+	<div id="dialogBotConfigGB" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
+		<form id="formBotConfigGB">
 			<p>Name</p>
-			<input type="text" name="name" value="Neuer Bot">
+			<input type="text" name="name" value="New Bot">
 			<p>Description</p>
 			<input type="text" name="description" value="">
-			<p>Greeting Text</p>
+			<p>Greeting Text<br>
+				Use &lt;nick&gt; as place holder in your text.</p>
 			<input type="text" name="greetingText" value="">
 			<input type="submit" tabindex="-1" style="display: none;">
 		</form>
 	</div>
-
+	
+	<!-- Chat Bot -->
 	<div class="contentbots">
-		<table id="tableChatBotId" class="tablebots">
+		<table id="tableBotConfigCB" class="tablebots">
 			<tr>
 				<td class="head">Chat Bots</td>
 				<td class="head"></td>
 				<td class="head"></td>
-				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="Neuer Bot" title="Neuer Bot" onclick="botNew();"></td>
+				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="New Chat Bot" title="New Chat Bot" onclick="botNew('BotConfigCB');"></td>
 				<td class="head" style="width: 40px;"></td>
 			</tr>
 			<tr>
@@ -219,14 +240,16 @@
 			</tr>
 		</table>
 	</div>
-	<div id="dialogChatBotId" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
-		<form id="chatBotFormId">
+	<div id="dialogBotConfigCB" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
+		<form id="formBotConfigCB">
 			<p>Name</p>
-			<input type="text" name="name" value="Neuer Bot">
+			<input type="text" name="name" value="New Bot">
 			<p>Description</p>
 			<input type="text" name="description" value="">
-			<p>Greeting Text</p>
-			<input type="text" name="nickName" value="">
+			<p>Channel ID (bot's channel)</p>
+			<input type="number" name="channelID" value="">
+			<p>Nick Name</p>
+			<input type="text" name="nickName" value="">			
 			<input type="submit" tabindex="-1" style="display: none;">
 		</form>
 	</div>

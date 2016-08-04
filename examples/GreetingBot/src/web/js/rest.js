@@ -20,7 +20,7 @@ function initREST(logger) {
      * Asynchronous request which uses POST and expects JSON as response.
      * 
      * @param requestUrl        Request URL
-     * @param requestData       Request data (e.g. a form)
+     * @param requestData       Request data (e.g. form data)
      * @param responseCallback  Callback for reponse notification.
      *                          The response is parsed as JSON and a corresponding
      *                          java object is used for the callback.
@@ -84,9 +84,8 @@ function initREST(logger) {
      */
     REST.createBot = function(ctrlName, formID, callback) {
         var formdata = $("#" + formID).serializeArray();
-        formdata.push({name: "page", value : ctrlName});
         formdata.push({name: "create", value : "0"});
-        requestJSON(null, formdata, callback);
+        requestJSON("?page=" + ctrlName, formdata, callback);
     };
 
     /**
@@ -99,9 +98,8 @@ function initREST(logger) {
      */
     REST.updateBot = function(ctrlName, id, formID, callback) {
         var formdata = $("#" + formID).serializeArray();
-        formdata.push({name: "page", value : ctrlName});
         formdata.push({name: "update", value : id});
-        requestJSON(null, formdata, callback);
+        requestJSON("?page=" + ctrlName, formdata, callback);
     };
 
     /**
@@ -114,10 +112,9 @@ function initREST(logger) {
      */
     REST.enableBot = function(ctrlName, id, enable, callback) {
         var reqdata = [];
-        reqdata.push({name: "page", value : ctrlName});
         reqdata.push({name: "update", value : id});
         reqdata.push({name: "active", value: enable ? "1" : "0"});
-        requestJSON(null, reqdata, callback);
+        requestJSON("?page=" + ctrlName, reqdata, callback);
     };
 
     /**
@@ -158,9 +155,8 @@ function initREST(logger) {
      */
     REST.createUser = function(fields, callback) {
         var formdata = fields;
-        formdata.push({name: "page", value : "UserAdmin"});
         formdata.push({name: "create", value : "0"});
-        requestJSON(null, formdata, callback);
+        requestJSON("?page=UserAdmin", formdata, callback);
     };
 
     /**
@@ -172,9 +168,8 @@ function initREST(logger) {
      */
     REST.updateUser = function(id, fields, callback) {
         var formdata = fields;
-        formdata.push({name: "page", value : "UserAdmin"});
         formdata.push({name: "update", value : id});
-        requestJSON(null, formdata, callback);
+        requestJSON("?page=UserAdmin", formdata, callback);
     };
 
     /**
@@ -186,10 +181,9 @@ function initREST(logger) {
      */
     REST.enableUser = function(id, enable, callback) {
         var reqdata = [];
-        reqdata.push({name: "page", value : "UserAdmin"});
         reqdata.push({name: "update", value : id});
         reqdata.push({name: "active", value: enable ? "1" : "0"});
-        requestJSON(null, reqdata, callback);
+        requestJSON("?page=UserAdmin", reqdata, callback);
     };
 
      /**
@@ -201,10 +195,9 @@ function initREST(logger) {
      */
     REST.setRole = function(id, roleFlag, callback) {
         var reqdata = [];
-        reqdata.push({name: "page", value : "UserAdmin"});
         reqdata.push({name: "update", value : id});
         reqdata.push({name: "roles", value: roleFlag});
-        requestJSON(null, reqdata, callback);
+        requestJSON("?page=UserAdmin", reqdata, callback);
     };
 
     /**

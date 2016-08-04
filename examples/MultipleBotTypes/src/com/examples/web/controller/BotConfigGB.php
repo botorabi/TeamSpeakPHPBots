@@ -15,6 +15,7 @@ use com\tsphpbots\utils\Log;
 
 /**
  * Page controller for bot GreetingBot
+ * NOTE: This controller has no template, it is a pure REST interface.
  * 
  * First Created:  22th June 2016
  * Author:         boto
@@ -27,12 +28,13 @@ class BotConfigGB extends BaseController {
     protected static $TAG = "BotConfigGB";
 
     /**
-     * @var string Class name used for automatically find the proper template
+     * @var string  Main page, will be used for login if not already done
      */
-    public $renderClassName = "BotConfigGB";
-
     protected $renderMainClass  = "Main";
 
+    /**
+     * @var array A Summary of bot information
+     */
     protected $botSummaryFields = ["id", "botType", "name", "description", "active"];
 
     /**
@@ -93,7 +95,7 @@ class BotConfigGB extends BaseController {
             $this->cmdDeleteBot($params);
         }
         else {
-            $this->renderView($this->renderClassName, null);
+            Log::printEcho(json_encode(["result" => "nok", "reason" => "unsupported request"]));
         }
     }
 

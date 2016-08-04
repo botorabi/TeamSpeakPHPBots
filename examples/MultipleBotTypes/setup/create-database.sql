@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS `tsphpbots_chatbot` (
   `name` varchar(45) NOT NULL,
   `description` varchar(256) DEFAULT '',
   `active` TINYINT(1) DEFAULT '1',
+  `nickName` varchar(45) NOT NULL DEFAULT 'Chatty',
+  `channelID` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 )
