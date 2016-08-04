@@ -1,0 +1,200 @@
+<!--INCLUDE:Head.html-->
+<script>
+	
+	var BOT_NAME = "BotConfigGB";
+	function initContent() {
+		$("#backbtnId").show();
+		REST.getBotList(BOT_NAME, function (res) {
+			if (res.result === "ok") {
+				LAYOUT.putBotList("tablebotsId", res.data, function (op, id) {
+					switch(op) {
+						case "delete":
+							botDelete(id);
+							break;
+						case "modify":
+							botModify(id);
+							break;
+						case "enableBot":
+							botEnable(id, true);
+							break;
+						case "disableBot":
+							botEnable(id, false);
+							break;
+						default:
+							;
+					}
+				});
+			}
+		});
+	}
+
+	function processBotCreate() {
+		REST.createBot(BOT_NAME, "botFormId", function(res) {
+			if (res.result === "ok") {
+				showMessageDialog("Neuer Bot", "Bot wurde erfolgreich erstellt.", "Ok",  function() {
+					location.reload();				
+				});
+			}
+			else {
+				showMessageDialog("Neuer Bot", "Bot konnte nicht erstellt werden!\nGrund: " + res.reason, "Ok",  function() {
+					location.reload();				
+				});
+			}
+		});
+	}
+
+	function processBotModify(id) {
+		REST.updateBot(BOT_NAME, id, "botFormId", function(res) {
+			if (res.result === "ok") {
+				showMessageDialog("Bot Konfiguration", "Bot wurde erfolgreich aktualisiert.", "Ok",  function() {
+					location.reload();				
+				});
+				notifyServiceBotUpdate(id);
+			}
+			else {
+				showMessageDialog("Bot Konfiguration", "Bot konnte nicht aktualisiert werden!\nGrund: " + res.reason, "Ok",  function() {
+					location.reload();				
+				});
+			}
+		});
+	}
+
+	function onBodyClicked(event) {
+		if ($("#menuDropdownId").is( ":visible" )) {
+			$("#menuDropdownId").toggle("slide");
+		}
+		event.stopPropagation();
+	}
+
+	function botNew() {
+		$("#dialogBotId").show();
+		var dlg = $("#dialogBotId").dialog({
+			dialogClass: "no-close",
+			draggable: false,
+			autoOpen: false,
+			resizable: false,
+			width: 370,
+			modal: true,
+			buttons:{
+				"Abbrechen": function(event) {
+					$(this).dialog( "close" );
+				},
+				"Erstellen": function(event) {
+					processBotCreate();
+				}
+			}
+		});
+		dlg.find("form").on("submit", function(event) {
+			event.preventDefault();
+			processBotCreate();
+		});
+		dlg.dialog("open");
+		dlg.dialog("moveToTop");
+	}
+
+	function botModify(id) {
+		REST.getBot(BOT_NAME, id, function(res) {
+			if (res.result === "ok") {
+				// fill the form inputs
+				$.each(res.data, function(field, value) {
+					$('#botFormId :input[name="' + field + '"]').val(value);
+				});
+				$("#dialogBotId").show();
+				var dlg = $("#dialogBotId").dialog({
+					dialogClass: "no-close",
+					draggable: false,
+					autoOpen: false,
+					resizable: false,
+					width: 370,
+					modal: true,
+					buttons:{
+						"Abbrechen": function(event) {
+							$(this).dialog( "close" );
+						},
+						"Ändern": function(event) {
+							$(this).dialog( "close" );
+							processBotModify(res.data.id);
+						}
+					}
+				});
+				dlg.find("form").on("submit", function(event) {
+					event.preventDefault();
+					processBotModify(res.data.id);
+				});
+				dlg.dialog("open");
+				dlg.dialog("moveToTop");
+			}
+			else {
+				showMessageDialog("Bot anpassen", "Bot konnte nicht gefunden werden!\nGrund: " + res.reason, "Ok", null);
+			}
+		});
+	}
+
+	function botDelete(id) {
+		showMessageDialog("Bot entfernen", "Wollen Sie wirklich diesen Bot entfernen?",
+		"Nein", null,
+		"Ja", function() {
+			REST.deleteBot(BOT_NAME, id, function (res) {
+				if (res.result === "ok") {
+					showMessageDialog("Bot entfernen", "Bot wurde erfolgreich entfernt.", "Ok", function() {
+						location.reload();				
+					});
+				}
+				else {
+					showMessageDialog("Bot entfernen", "Bot konnte nicht entfernt werden.\nGrund: " + res.reason, "Ok", null);
+				}
+			});
+		});
+	}
+
+	function notifyServiceBotUpdate(id) {
+		REST.botServiceUpdateBot(id, function(res) {
+		});
+	}
+
+	function botEnable(id, enable) {
+		REST.enableBot(BOT_NAME, id, enable, function (res) {
+			if (res.result === "ok") {
+				setTimeout(function() {
+					notifyServiceBotUpdate(id);
+				}, 500);
+			}
+			else {
+				showMessageDialog("Bot entfernen", "Bot konnte nicht an- oder ausgeschaltet werden.\nGrund: " + res.reason, "Ok", null);
+				location.reload();				
+			}
+		});
+	}
+</script>
+<div id="maincontentId" class="maincontent">
+	<div class="contentbots">
+		<table id="tablebotsId" class="tablebots">
+			<tr>
+				<td class="head">GreetingBots</td>
+				<td class="head"></td>
+				<td class="head"></td>
+				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="Neuer Bot" title="Neuer Bot" onclick="botNew();"></td>
+				<td class="head" style="width: 40px;"></td>
+			</tr>
+			<tr>
+				<th>Name</th>
+				<th>Typ</th>
+				<th>Beschreibung</th>
+				<th style="text-align: center;">Aktiv</th>
+				<td class="mods"></td>
+			</tr>
+		</table>
+	</div>
+	<div id="dialogBotId" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
+		<form id="botFormId">
+			<p>Name</p>
+			<input type="text" name="name" value="Neuer Bot">
+			<p>Description</p>
+			<input type="text" name="description" value="">
+			<p>Greeting Text</p>
+			<input type="text" name="greetingText" value="">
+			<input type="submit" tabindex="-1" style="display: none;">
+		</form>
+	</div>
+</div>	
+<!--INCLUDE:Footer.html-->

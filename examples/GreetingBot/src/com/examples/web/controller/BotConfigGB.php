@@ -152,6 +152,7 @@ class BotConfigGB extends BaseController {
         foreach($bot->getFields() as $field => $value) {
             $response[$field] = $value;
         }
+
         $json = json_encode(["result" => "ok", "data" => $response]);
         Log::printEcho($json);
         return true;
@@ -175,8 +176,7 @@ class BotConfigGB extends BaseController {
             Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
         }
         else {
-            $json = json_encode(["result" => "ok", "data" => ["id" => $bot->getObjectID()]]);
-            Log::printEcho($json);
+            $this->createRespJsonBot($id);
         }
     }
 

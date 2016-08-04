@@ -20,11 +20,12 @@ function initLAYOUT(logger) {
     /**
      * Put the bot list into given table.
      * 
+     * @param botCtrlPage           Bot type
      * @param tableID           ID of table containig the bots
      * @param bots              Bot configuration array.
      * @param onClickHandler    Handler for onClick events
      */
-    LAYOUT.putBotList = function(tableID, bots, onClickHandler) {
+    LAYOUT.putBotList = function(botCtrlPage, tableID, bots, onClickHandler) {
     
         var elem = document.getElementById(tableID);
         if (!elem)
@@ -34,7 +35,7 @@ function initLAYOUT(logger) {
         if (!bots || !bots.length)
             return;
 
-        renderBots(elem, bots, onClickHandler);
+        renderBots(elem, botCtrlPage, bots, onClickHandler);
     };
 
     /**
@@ -80,7 +81,7 @@ function initLAYOUT(logger) {
     };
 
     //! Private functions
-    function renderBots(table, bots, onClickHandler) {
+    function renderBots(table, botCtrlPage, bots, onClickHandler) {
 
         if (table.tBodies.length === 0)
             return;
@@ -117,32 +118,38 @@ function initLAYOUT(logger) {
             chbox = document.createElement("input");
             chbox.id = "chboxactiveId";
             chbox.type = "checkbox";
-            chbox.botid = bots[i].id;
+            chbox.botId = bots[i].id;
+            chbox.botCtrlPage = botCtrlPage;
+            chbox.botType = bots[i].botType;
             if (bots[i].active === "1") {
                 chbox.setAttribute("checked", true);
             }
-            chbox.setAttribute("title", "An-/Ausschalten");
-            chbox.onclick = function() { if (onClickHandler) onClickHandler((this.checked === true)? 'enableBot' : 'disableBot', this.botid); };
+            chbox.setAttribute("title", "On / Off");
+            chbox.onclick = function() { if (onClickHandler) onClickHandler((this.checked === true)? 'enableBot' : 'disableBot', this.botCtrlPage, this.botType, this.botId); };
             td.appendChild(chbox);
 
             td = document.createElement("td");
             tr.appendChild(td);
             td.setAttribute("class", "mods");
             img = document.createElement("img");
-            img.botid = bots[i].id;
+            img.botId = bots[i].id;
+            img.botCtrlPage = botCtrlPage;
+            img.botType = bots[i].botType;
             img.setAttribute("class", "imgClickable");
             img.setAttribute("src", "src/web/images/bot_edit.png");
-            img.setAttribute("title", "Ändern");
-            img.onclick = function() { if (onClickHandler) onClickHandler('modify', this.botid); };
+            img.setAttribute("title", "Modify");
+            img.onclick = function() { if (onClickHandler) onClickHandler('modify', this.botCtrlPage, this.botType, this.botId); };
             td.appendChild(img);
             br = document.createElement("br");
             td.appendChild(br);
             img = document.createElement("img");
-            img.botid = bots[i].id;
+            img.botId = bots[i].id;
+            img.botCtrlPage = botCtrlPage;
+            img.botType = bots[i].botType;
             img.setAttribute("class", "imgClickable");
             img.setAttribute("src", "src/web/images/bot_delete.png");
-            img.setAttribute("title", "Entfernen");
-            img.onclick = function() { if (onClickHandler) onClickHandler('delete', this.botid); };
+            img.setAttribute("title", "Delete");
+            img.onclick = function() { if (onClickHandler) onClickHandler('delete', this.botCtrlPage, this.botType, this.botId); };
             td.appendChild(img);
         }
     }
@@ -203,12 +210,12 @@ function initLAYOUT(logger) {
             td.appendChild(label);
             chbox = document.createElement("input");
             chbox.type = "checkbox";
-            chbox.userid = users[i].id;
+            chbox.userId = users[i].id;
             if (users[i].active === "1") {
                 chbox.setAttribute("checked", true);
             }
-            chbox.setAttribute("title", "An-/Ausschalten");
-            chbox.onclick = function() { if (onClickHandler) onClickHandler((this.checked === true)? 'enableUser' : 'disableUser', this.userid); };
+            chbox.setAttribute("title", "On / Off");
+            chbox.onclick = function() { if (onClickHandler) onClickHandler((this.checked === true)? 'enableUser' : 'disableUser', this.userId); };
             if ((parseInt(users[i].ops) & 4) === 0) {
                 chbox.disabled = true;
             }
@@ -225,14 +232,14 @@ function initLAYOUT(logger) {
             td.appendChild(label);
             sel = document.createElement("select");
             sel.id = "cmborolesId";
-            sel.userid = users[i].id;
+            sel.userId = users[i].id;
             sel.onchange = function() {
                 if (onClickHandler) {
                     if (this.value === "1") {
-                        onClickHandler("setRoleAdmin", this.userid);
+                        onClickHandler("setRoleAdmin", this.userId);
                     }
                     else if (this.value === "2") {
-                        onClickHandler("setRoleBotMaster", this.userid);
+                        onClickHandler("setRoleBotMaster", this.userId);
                     }
                 }
             };
@@ -263,22 +270,22 @@ function initLAYOUT(logger) {
             td.setAttribute("class", "mods");
             if ((parseInt(users[i].ops) & 2) === 2) {
                 img = document.createElement("img");
-                img.userid = users[i].id;
+                img.userId = users[i].id;
                 img.setAttribute("class", "imgClickable");
                 img.setAttribute("src", "src/web/images/user_edit.png");
-                img.setAttribute("title", "Ändern");
-                img.onclick = function() { if (onClickHandler) onClickHandler('modify', this.userid); };
+                img.setAttribute("title", "Modify");
+                img.onclick = function() { if (onClickHandler) onClickHandler('modify', this.userId); };
                 td.appendChild(img);
                 br = document.createElement("br");
                 td.appendChild(br);
             }
             if ((parseInt(users[i].ops) & 1) === 1) {
                 img = document.createElement("img");
-                img.userid = users[i].id;
+                img.userId = users[i].id;
                 img.setAttribute("class", "imgClickable");
                 img.setAttribute("src", "src/web/images/user_delete.png");
-                img.setAttribute("title", "Entfernen");
-                img.onclick = function() { if (onClickHandler) onClickHandler('delete', this.userid); };
+                img.setAttribute("title", "Delete");
+                img.onclick = function() { if (onClickHandler) onClickHandler('delete', this.userId); };
                 td.appendChild(img);
             }
         }

@@ -23,7 +23,7 @@
  */
 
 /*DROP TABLE IF EXISTS `tsphpbots_user`;*/
-CREATE TABLE `tsphpbots_user` (
+CREATE TABLE IF NOT EXISTS `tsphpbots_user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `description` varchar(256) DEFAULT '',
@@ -59,7 +59,7 @@ INSERT INTO `tsphpbots_user` (`id`, `name`, `description`, `active`, `email`, `l
  */
 
 /*DROP TABLE IF EXISTS `tsphpbots_greetingbot`;*/
-CREATE TABLE `tsphpbots_greetingbot` (
+CREATE TABLE IF NOT EXISTS `tsphpbots_greetingbot` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `botType` varchar(45) NOT NULL,
   `name` varchar(45) NOT NULL,

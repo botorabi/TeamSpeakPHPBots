@@ -25,7 +25,7 @@ class BotManager {
     protected static $TAG = "BotManager";
 
     /**
-     * @var array  Registered bot classes
+     * @var array  Registered bot classes (usually a bot type is its class)
      */
     protected $botClasses = [];
 
@@ -65,6 +65,23 @@ class BotManager {
         $cleanpath = str_replace("/", "\\", $botClass);
         $this->botClasses[] = $cleanpath;
     }
+    
+    /**
+     * Given a bot type try to find its class in registered classes.
+     * 
+     * @param string $botType       Bot type
+     * @return sting                Return null if the class could not be found.
+     */
+    public function findBotClass($botType) {
+        $foundclass = null;
+        foreach($this->botClasses as $botclass) {
+            if (strpos($botType, $botclass) !== false) {
+                $foundclass = $botclass;
+                break;
+            }
+        }
+        return $foundclass;
+    }
 
     /**
      * Periodically call this update method.
@@ -82,7 +99,8 @@ class BotManager {
         foreach($this->botClasses as $botclass) {
             try {
                 $bot = $botclass::create($this->ts3Server);
-            } catch (Exception $e) {
+            }
+            catch (Exception $e) {
                 Log::warning(self::$TAG, "could not create instance of bot class: " . $botclass);
                 Log::warning(self::$TAG, "  reason: " . $e->getMessage());
                 continue;
@@ -149,16 +167,70 @@ class BotManager {
     /**
      * Notify about an update of bot configuration. Usually this means that the bot
      * config was changed in the database, the bot should load it and reflect
-     * the changes.
+     * the changes, if it exists.
      * 
-     * @param int $id      The bot ID
+     * @param string $botType   The bot type
+     * @param int $id           The bot ID
+     * @return boolean          Return true if the bot was found and updated successfully, otherwise false.
      */
-    public function notifyUpdateBotConfig($id) {
+    public function notifyBotUpdateConfig($botType, $id) {
         foreach($this->bots as $bot) {
-            if ($bot->getID() == $id) {
+            if ((strcmp($botType, $bot->getType()) === 0) && ($bot->getID() == $id)) {
                 $bot->onConfigUpdate();
-                break;
+                return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * Notify about a bot creation in database. The bot will be loaded and added to the bot manager.
+     * 
+     * @param string $botType   The bot type
+     * @param int $id           The bot ID
+     * @return boolean          Return true if the bot was found and deleted successfully, otherwise false.
+     */
+    public function notifyBotAdd($botType, $id) {
+        $botclass = $this->findBotClass($botType);
+        if (is_null($botclass)) {
+            return false;
+        }
+
+        try {
+            $bot = $botclass::create($this->ts3Server);
+        }
+        catch (Exception $e) {
+            Log::warning(self::$TAG, "could not create a new instance of bot class: " . $botclass);
+            Log::warning(self::$TAG, "  reason: " . $e->getMessage());
+            return false;
+        }
+        
+        if ($bot->load($id) === true) {
+            Log::debug(self::$TAG, "new bot was added: " . $botType);
+            $this->bots[] = $bot;
+        }
+        else {
+            Log::warning(self::$TAG, "cannot add new bot, it failed to load");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Notify about a bot deletion in database. The bot will be removed from the bot manager.
+     * 
+     * @param string $botType   The bot type
+     * @param int $id           The bot ID
+     * @return boolean          Return true if the bot was found and deleted successfully, otherwise false.
+     */
+    public function notifyBotDelete($botType, $id) {
+        foreach($this->bots as $key => $bot) {
+            if ((strcmp($botType, $bot->getType()) === 0) && ($bot->getID() == $id)) {
+                unset($this->bots[$key]);
+                return true;
+            }
+        }
+        return false;
     }
 }

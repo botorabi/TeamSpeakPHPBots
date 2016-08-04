@@ -27,11 +27,6 @@ class GreetingBot extends BotBase {
     protected static $TAG = "GreetingBot";
 
     /**
-     * @var sting Bot type
-     */
-    public static $BOT_TYPE = "GreetingBot";
-
-    /**
      *
      * @var GreetingBotModel  Database model of the bot. All bot paramerers are hold here.
      */
@@ -68,7 +63,7 @@ class GreetingBot extends BotBase {
      * @return string       The bot type
      */
     public function getType() {
-        return self::$BOT_TYPE;
+        return $this->model->botType;
     }
 
     /**

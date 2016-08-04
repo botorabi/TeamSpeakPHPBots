@@ -97,8 +97,14 @@ class BotServer extends BaseController {
         else if (isset($params["stop"])) {
             $this->cmdStopBotServer();
         }
+        else if (isset($params["add"])) {
+            $this->cmdBotAdd($params["botType"], $params["add"]);
+        }
         else if (isset($params["update"])) {
-            $this->cmdUpdateBot($params["update"]);
+            $this->cmdBotUpdate($params["botType"], $params["update"]);
+        }
+        else if (isset($params["delete"])) {
+            $this->cmdBotDelete($params["botType"], $params["delete"]);
         }
         else {
             $this->renderView($this->renderClassName, null);
@@ -191,11 +197,40 @@ class BotServer extends BaseController {
     }
 
     /**
-     * Update the bot given its ID.
+     * Add a bot given its type and ID.
      * 
-     * @param $id       Bot ID
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
      */
-    protected function cmdUpdateBot($id) {
+    protected function cmdBotAdd($botType, $id) {
+
+        Log::debug(self::$TAG, "adding bot, id: " . $id);
+
+        $servicequery = new ClientQuery;
+        $servicequery->connect();
+        if ($servicequery->connect() === false) {
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        $result = $servicequery->botAdd($botType, $id);
+
+        if (is_null($result)) {
+            Log::debug(self::$TAG, " could not add bot");
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        Log::printEcho(json_encode(["result" => "ok"]));
+    }
+
+    /**
+     * Update the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     */
+    protected function cmdBotUpdate($botType, $id) {
 
         Log::debug(self::$TAG, "updating bot, id: " . $id);
 
@@ -206,10 +241,38 @@ class BotServer extends BaseController {
             return;
         }
 
-        $result = $servicequery->updateBot($id);
+        $result = $servicequery->botUpdate($botType, $id);
 
         if (is_null($result)) {
             Log::debug(self::$TAG, " could not update bot");
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        Log::printEcho(json_encode(["result" => "ok"]));
+    }
+
+    /**
+     * Delete the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     */
+    protected function cmdBotDelete($botType, $id) {
+
+        Log::debug(self::$TAG, "deleting bot, id: " . $id);
+
+        $servicequery = new ClientQuery;
+        $servicequery->connect();
+        if ($servicequery->connect() === false) {
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        $result = $servicequery->botDelete($botType, $id);
+
+        if (is_null($result)) {
+            Log::debug(self::$TAG, " could not delete bot");
             Log::printEcho(json_encode(["result" => "nok"]));
             return;
         }

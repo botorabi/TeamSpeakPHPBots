@@ -1,0 +1,21 @@
+{
+    "name": "botorabi/ts3-php-bots",
+    "type": "library",
+    "keywords": ["teamspeak" , "api", "bot", "php"],
+    "homepage": "https://github.com/botorabi/TeamSpeakPHPBots",
+    "description": "TeamSpeakPHPBots is a lightweight TeamSpeak bot framework in PHP.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Botorabi",
+            "email": "botorabi@gmx.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.1",
+        "planetteamspeak/ts3-php-framework": "~1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.4"
+    }
+}

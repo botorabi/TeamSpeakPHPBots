@@ -57,34 +57,34 @@ function initREST(logger) {
     /**
      * Get a list of bots.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param callback  Callback function used when the results are ready.
      */
-    REST.getBotList = function(name, callback) {
-        requestJSON("?page=" + name + "&list=0", null, callback);
+    REST.getBotList = function(ctrlName, callback) {
+        requestJSON("?page=" + ctrlName + "&list=0", null, callback);
     };
 
     /**
      * Get the bot with given ID.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param id        Bot ID
      * @param callback  Callback function used when the results are ready.
      */
-    REST.getBot = function(name, id, callback) {
-        requestJSON("?page=" + name + "&id=" + id, null, callback);
+    REST.getBot = function(ctrlName, id, callback) {
+        requestJSON("?page=" + ctrlName + "&id=" + id, null, callback);
     };
 
     /**
      * Create a new bot with specified parameters in given formular.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param formID    Forumular ID, the formular contains the bot data.
      * @param callback  Callback function used when the results are ready.
      */
-    REST.createBot = function(name, formID, callback) {
+    REST.createBot = function(ctrlName, formID, callback) {
         var formdata = $("#" + formID).serializeArray();
-        formdata.push({name: "page", value : name});
+        formdata.push({name: "page", value : ctrlName});
         formdata.push({name: "create", value : "0"});
         requestJSON(null, formdata, callback);
     };
@@ -92,14 +92,14 @@ function initREST(logger) {
     /**
      * Update a bot with specified parameters in given formular.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param id        Bot ID
      * @param formID    Forumular ID, the formular contains the bot data.
      * @param callback  Callback function used when the results are ready.
      */
-    REST.updateBot = function(name, id, formID, callback) {
+    REST.updateBot = function(ctrlName, id, formID, callback) {
         var formdata = $("#" + formID).serializeArray();
-        formdata.push({name: "page", value : name});
+        formdata.push({name: "page", value : ctrlName});
         formdata.push({name: "update", value : id});
         requestJSON(null, formdata, callback);
     };
@@ -107,14 +107,14 @@ function initREST(logger) {
     /**
      * Enable/disable a bot with given ID.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param id        Bot ID
      * @param enable    true for enabling the bot, false for disabling it.
      * @param callback  Callback function used when the results are ready.
      */
-    REST.enableBot = function(name, id, enable, callback) {
+    REST.enableBot = function(ctrlName, id, enable, callback) {
         var reqdata = [];
-        reqdata.push({name: "page", value : name});
+        reqdata.push({name: "page", value : ctrlName});
         reqdata.push({name: "update", value : id});
         reqdata.push({name: "active", value: enable ? "1" : "0"});
         requestJSON(null, reqdata, callback);
@@ -123,12 +123,12 @@ function initREST(logger) {
     /**
      * Delete the bot with given ID.
      * 
-     * @param name      Bot controller name
+     * @param ctrlName  Bot controller name
      * @param id        Bot ID
      * @param callback  Callback function used when the results are ready.
      */
-    REST.deleteBot = function(name, id, callback) {
-        requestJSON("?page=" + name + "&delete=" + id, null, callback);
+    REST.deleteBot = function(ctrlName, id, callback) {
+        requestJSON("?page=" + ctrlName + "&delete=" + id, null, callback);
     };
 
     /**
@@ -245,13 +245,38 @@ function initREST(logger) {
     };
 
     /**
-     * Request for updating a bot with given id. This is used in order to let changes
-     * in a bot take place without restarting the bost service.
+     * Request for adding a bot with given type and id. This is used in order to let changes
+     * in a bot take place without restarting the bot service.
      * 
+     * @param botType   Bot type
      * @param id        Bot ID
      * @param callback  Callback function used when the results are ready.
      */
-    REST.botServiceUpdateBot = function(id, callback) {
-        requestJSON("?page=BotServer&update=" + id, null, callback);        
+    REST.botServiceAddBot = function(botType, id, callback) {
+        requestJSON("?page=BotServer&add=" + id + "&botType=" + botType, null, callback);        
+    };
+
+    /**
+     * Request for updating a bot with given type and id. This is used in order to let changes
+     * in a bot take place without restarting the bot service.
+     * 
+     * @param botType   Bot type
+     * @param id        Bot ID
+     * @param callback  Callback function used when the results are ready.
+     */
+    REST.botServiceUpdateBot = function(botType, id, callback) {
+        requestJSON("?page=BotServer&update=" + id + "&botType=" + botType, null, callback);        
+    };
+
+    /**
+     * Request for deleting a bot with given type and id. This is used in order to let changes
+     * in a bot take place without restarting the bot service.
+     * 
+     * @param botType   Bot type
+     * @param id        Bot ID
+     * @param callback  Callback function used when the results are ready.
+     */
+    REST.botServiceDeleteBot = function(botType, id, callback) {
+        requestJSON("?page=BotServer&delete=" + id + "&botType=" + botType, null, callback);        
     };
 }

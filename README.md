@@ -8,7 +8,7 @@
     Author:  Botorabi (botorabi AT gmx DOT net)
 
 # TeamSpeakPHPBots
-TeamSpeakPHPBots is a framework for developing TeamSpeak bots in PHP.
+TeamSpeakPHPBots is a lightweight framework for developing TeamSpeak bots in PHP.
 
 # Introduction
 

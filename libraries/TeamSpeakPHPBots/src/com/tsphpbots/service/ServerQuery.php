@@ -8,8 +8,9 @@
  */
 
 namespace com\tsphpbots\service;
-use com\tsphpbots\config\Config;
+use com\tsphpbots\service\ServerBotAction;
 use com\tsphpbots\bots\BotManager;
+use com\tsphpbots\config\Config;
 use com\tsphpbots\utils\Log;
 
 /**
@@ -31,7 +32,12 @@ class ServerQuery {
      * @var BotManager The bot manager instance
      */
     protected $botManager = null;
-    
+
+    /**
+     * @var ServerBotAction A handler for all bot actions
+     */
+    protected $botActionHandler = null;
+
     /**
      * @var Object Socket
      */
@@ -63,6 +69,7 @@ class ServerQuery {
     public function initialize(BotManager $botManager, $addr = null, $port = null) {
 
         $this->botManager = $botManager;
+        $this->botActionHandler = new ServerBotAction($botManager);
         
         $this->addr = is_null($addr) ? Config::getBotService("host") : $addr;
         $this->port = is_null($port) ? Config::getBotService("hostPort") : $port;
@@ -153,29 +160,10 @@ class ServerQuery {
         if (strcmp($reqMsg, "status") !==0) {
             Log::debug(self::$TAG, "got request: '" . $reqMsg . "'");
         }
-        
-        $CMD_UPDATE_BOT = "updatebot";
 
-        // check for update bot command
-        if (strlen($reqMsg) > strlen($CMD_UPDATE_BOT) &&
-            strcmp(substr($reqMsg, 0, strlen($CMD_UPDATE_BOT)), $CMD_UPDATE_BOT) === 0) {
-
-            $response = "";
-
-            $elems = explode(" ", $reqMsg);
-            if (count($elems) === 2) {
-                $botid = (int)trim($elems[1]);
-                if (!is_numeric($botid)) {
-                    $response = $this->createResponseBotUpdate($botid, false);
-                }
-                else {
-                    $response = $this->createResponseBotUpdate($botid, true);
-                    $this->botManager->notifyUpdateBotConfig($botid);
-                }
-            }
-            else {
-                $response = $this->createResponseBotUpdate($reqMsg, false);
-            }
+        // check for bot actions
+        $response = $this->botActionHandler->handleRequest($reqMsg);
+        if (!is_null($response)) {
             socket_write($client, $response . "\r");
         }
         else {
@@ -227,20 +215,6 @@ class ServerQuery {
     protected function createResponseStop() {
         return json_encode([
                 "stop" => "ok"
-            ]);
-    }
-
-    /**
-     * Create a json response for bot updating.
-     * 
-     * @param int $id           Bot ID
-     * @param boolean $success  Pass true for success, false for fail
-     * @return string           Bot update results.
-     */
-    protected function createResponseBotUpdate($id, $success) {
-        return json_encode([
-                "updatebot" => $success ? "ok" : "nok",
-                "id" => $id
             ]);
     }
 }
