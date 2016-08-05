@@ -36,6 +36,8 @@ class ChatBotModel extends DBObject {
      * Setup the object fields. Note that a field called "id" is automatically
      * created for the object, no need to define it here!
      * 
+     * @implementes DBObject
+     *
      *   botType                        The type of this bot (see $BOT_TYPE_NAME above) 
      *   name                           Bot name
      *   description                    A short bot description

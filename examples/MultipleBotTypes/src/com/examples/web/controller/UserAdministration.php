@@ -17,8 +17,8 @@ use com\tsphpbots\web\controller\UserAdmin;
  * create, update, delete, listing, and user details. In addition it supportes
  * an HTML page template for managing users.
  *
- * First Created:  3rd July 2016
- * Author:         Botorabi (boto)
+ * @created:  3rd July 2016
+ * @author:   Botorabi
  */
 class UserAdministration extends UserAdmin {
 

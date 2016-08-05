@@ -61,8 +61,8 @@ INSERT INTO `tsphpbots_user` (`id`, `name`, `description`, `active`, `email`, `l
 /*DROP TABLE IF EXISTS `tsphpbots_greetingbot`;*/
 CREATE TABLE IF NOT EXISTS `tsphpbots_greetingbot` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `botType` varchar(45) NOT NULL,
-  `name` varchar(45) NOT NULL,
+  `botType` varchar(45) DEFAULT '',
+  `name` varchar(45) DEFAULT '',
   `description` varchar(256) DEFAULT '',
   `active` TINYINT(1) DEFAULT '1',
   `greetingText` varchar(256) DEFAULT '',
@@ -78,11 +78,11 @@ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='TeamSpeakPHPBot: Gr
 /*DROP TABLE IF EXISTS `tsphpbots_chatbot`;*/
 CREATE TABLE IF NOT EXISTS `tsphpbots_chatbot` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `botType` varchar(45) NOT NULL,
-  `name` varchar(45) NOT NULL,
+  `botType` varchar(45) DEFAULT '',
+  `name` varchar(45) DEFAULT '',
   `description` varchar(256) DEFAULT '',
   `active` TINYINT(1) DEFAULT '1',
-  `nickName` varchar(45) NOT NULL DEFAULT 'Chatty',
+  `nickName` varchar(45) DEFAULT 'Chatty',
   `channelID` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)

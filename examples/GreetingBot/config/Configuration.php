@@ -69,7 +69,7 @@ abstract class Configuration {
         // Bot service query port
         "hostPort"      => 12000,
         // Command line for starting the bot service, used by web service
-        "cmdStart"      => "cd src; php greetingbot.php > botserver.log  2>&1 & echo $! > botserver.pid",
+        "cmdStart"      => "cd src; php botserver.php > botserver.log  2>&1 & echo $! > botserver.pid",
         // App's main source directory. This path is relative to executing path (you should see the directory structure 'com/examples/...' there).
         "appSrc"         => "./",
         // TeamSpeakPHPBots library's main source directory. You may have put it to /usr/local/share/TeamSpeakPHPBots, though. Who knows?

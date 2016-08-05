@@ -8,14 +8,14 @@
  */
 
 namespace com\examples\web\controller;
-use com\tsphpbots\web\controller\BaseController;
+use com\tsphpbots\web\core\BaseController;
 use com\tsphpbots\user\Auth;
 
 /**
  * Page controller for bot configuration
  * 
- * First Created:  4th August 2016
- * Author:         boto
+ * @created:  4th August 2016
+ * @author:   Botorabi
  */
 class BotConfig extends BaseController {
 

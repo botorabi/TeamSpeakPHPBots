@@ -9,15 +9,15 @@
 
 namespace com\examples\web\controller;
 use com\examples\bots\greetingbot\GreetingBotModel;
-use com\tsphpbots\web\controller\BaseController;
+use com\tsphpbots\web\core\BaseController;
 use com\tsphpbots\user\Auth;
 use com\tsphpbots\utils\Log;
 
 /**
  * Page controller for bot GreetingBot
  * 
- * First Created:  22th June 2016
- * Author:         boto
+ * @created:  22th June 2016
+ * @author:   Botorabi
  */
 class BotConfigGB extends BaseController {
 

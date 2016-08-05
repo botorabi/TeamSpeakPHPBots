@@ -13,7 +13,7 @@ ini_set("display_errors", 1);
 
 require_once("config/Configuration.php");
 
-use com\tsphpbots\web\controller\PageLoader;
+use com\tsphpbots\web\core\PageLoader;
 use com\tsphpbots\utils\Log;
 
 /**

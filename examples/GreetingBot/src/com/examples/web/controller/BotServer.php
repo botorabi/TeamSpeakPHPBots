@@ -8,7 +8,7 @@
  */
 
 namespace com\examples\web\controller;
-use com\tsphpbots\web\controller\BaseController;
+use com\tsphpbots\web\core\BaseController;
 use com\tsphpbots\service\ClientQuery;
 use com\tsphpbots\user\User;
 use com\tsphpbots\user\Auth;
@@ -20,7 +20,7 @@ use com\tsphpbots\config\Config;
  * BotServer Page controller
  * 
  * @created:  21st July 2016
- * æuthor:    Botorabi (boto)
+ * @author:   Botorabi
  */
 class BotServer extends BaseController {
 

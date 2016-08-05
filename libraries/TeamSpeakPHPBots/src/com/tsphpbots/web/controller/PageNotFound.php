@@ -8,7 +8,7 @@
  */
 
 namespace com\tsphpbots\web\controller;
-use com\tsphpbots\web\controller\BaseController;
+use com\tsphpbots\web\core\BaseController;
 
 
 /**

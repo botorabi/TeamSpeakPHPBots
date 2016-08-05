@@ -7,7 +7,7 @@
  *          main directory for more details.
  */
 
-namespace com\tsphpbots\web\controller;
+namespace com\tsphpbots\web\core;
 use com\tsphpbots\config\Config;
 use com\tsphpbots\utils\Log;
 use com\tsphpbots\user\Auth;
@@ -29,7 +29,7 @@ use com\tsphpbots\user\Auth;
  * 
  * Some URL examples: http://ip-address/?page=Main or http://ip-address/?page=UserAdmin&id=42
  *  
- * @package   com\tsphpbots\web\controller
+ * @package   com\tsphpbots\web\core
  * @created   22th June 2016
  * @author    Botorabi
  */
@@ -49,6 +49,11 @@ class PageLoader {
      * @var string Login page's controller name
      */
     protected static $loginPageName   = "Login";
+
+    /**
+     * @var string Name space of default controllers in library package.
+     */
+    protected $defaultControllerLocation = 'com\tsphpbots\web\controller';
 
     /**
      *
@@ -168,8 +173,8 @@ class PageLoader {
     /**
      * Given a controller class name return its path ready for loading.
      * The defined search paths are checked and if not successful then the
-     * directory of this module is searched for the module.
-     * 
+     * default controller location is searched.
+     *
      * @param string $className   Class name
      * @return string             Full path of the class file for loading, or null 
      *                            if the class name could not be determined.
@@ -181,24 +186,20 @@ class PageLoader {
         if (!is_null($filesearchpath)) {
             return $filesearchpath . "\\" . $className; 
         }
-
-        // fallback to the directory where this loader module resides
-        $class    = __CLASS__;
-        $pos      = strrpos($class, "\\", -1);
-        $basedir  = substr($class, 0, $pos);
-        $path     = str_replace("/", "\\", $basedir);
-
-        // check if the file exists
-        $fullpath = getcwd() . DIRECTORY_SEPARATOR . Config::getWebInterface("libSrc") .
-                    DIRECTORY_SEPARATOR . $basedir . "\\" . $className . ".php";
+                
+        // fall back to the default controller location
+        $fullpath = getcwd() . DIRECTORY_SEPARATOR . 
+                    Config::getWebInterface("libSrc") . DIRECTORY_SEPARATOR .
+                    $this->defaultControllerLocation . DIRECTORY_SEPARATOR .
+                    $className . ".php";
+        
         $fullpath = str_replace("\\", DIRECTORY_SEPARATOR, $fullpath);
-
-        //Log::verbose(self::$TAG, "class: " . $class . ", basedir: " . $basedir . ", path: " . $path . ", fullpath: " . $fullpath);
+        //Log::verbose(self::$TAG, "class: " . $className . ", fullpath: " . $fullpath);
 
         if (file_exists($fullpath) === false) {
             return null;
         }
 
-        return $path . "\\" . $className;
+        return $this->defaultControllerLocation . "\\" . $className;
     }
 }

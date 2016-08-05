@@ -38,6 +38,31 @@ abstract class BotBase {
     }
 
     /**
+     * Get all available bot IDs.
+     * This is used by bot manager for loading all available bots from database.
+     * 
+     * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
+     */
+    abstract static public function getAllIDs();
+
+    /**
+     * Create a new bot instance.
+     * 
+     * @param Object $server TS3 Server object
+     * @return Object        New instance of the bot.
+     */
+    abstract static public function create($server);
+
+    /**
+     * Initialize the bot. Usually the bot will load its data from database using the given bot ID.
+     * This method is used also by the bot manager for creating bots.
+     * 
+     * @param int $botId    The database ID
+     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     */
+    abstract public function initialize($botId);
+
+    /**
      * Get the bot type.
      * 
      * @return string       The bot type
@@ -51,14 +76,6 @@ abstract class BotBase {
      */
     abstract public function getName();
 
-    /**
-     * Create a new bot instance.
-     * 
-     * @param Object $server TS3 Server object
-     * @return Object        New instance of the bot.
-     */
-    abstract static public function create($server);
-   
     /**
      * A bot may have a database model for persistence. If so then return an
      * instance of the model, or return null if there is no need for persistence.
@@ -79,16 +96,6 @@ abstract class BotBase {
      * Update the bot.
      */
     abstract public function update();
- 
-    /**
-     * Load the bot from database given its ID. The derived class must implement the functionality
-     * which is usually provided by the database model object (DBObject).
-     * 
-     * @param int $id       The database ID
-     * @return boolean      Return false if the object was not loaded, otherwise true.
-     *                      Bot types which do not have any database model should return false.
-     */
-    abstract public function load($id);
 
     /**
      * This method is called whenever a server event was received.

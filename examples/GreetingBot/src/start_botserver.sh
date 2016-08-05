@@ -19,5 +19,5 @@ PHP_BIN=php
 #$PHP_BIN greetingbot.php > botserver.log 2>&1  & echo $! > botserver.pid
 
 #Start the service in foreground
-$PHP_BIN greetingbot.php 2>&1
+$PHP_BIN botserver.php 2>&1
 

@@ -39,7 +39,7 @@ abstract class DBObject {
      */
     public function __construct($id = null) {
         $this->setupFields();
-        if (!is_null($id)) {
+        if (!is_null($id) && ($id !== 0)) {
             $this->loadObject($id);
         }
     }

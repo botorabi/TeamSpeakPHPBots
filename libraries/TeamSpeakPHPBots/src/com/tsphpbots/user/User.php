@@ -128,6 +128,8 @@ class User extends DBObject {
 
     /**
      * Setup the object fields.
+     * 
+     * @implementes DBObject
      */
     public function setupFields() {
         $this->objectFields[self::$DB_TABLE_USER_ACTIVE]     = 1;
