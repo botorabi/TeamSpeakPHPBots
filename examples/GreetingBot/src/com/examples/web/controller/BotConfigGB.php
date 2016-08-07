@@ -9,17 +9,19 @@
 
 namespace com\examples\web\controller;
 use com\examples\bots\greetingbot\GreetingBotModel;
-use com\tsphpbots\web\controller\BaseController;
+use com\examples\bots\greetingbot\GreetingBot;
+use com\tsphpbots\web\core\BaseRESTController;
 use com\tsphpbots\user\Auth;
 use com\tsphpbots\utils\Log;
 
 /**
  * Page controller for bot GreetingBot
+ * NOTE: This controller supports a template page and a REST interface.
  * 
- * First Created:  22th June 2016
- * Author:         boto
+ * @created:  22th June 2016
+ * @author:   Botorabi
  */
-class BotConfigGB extends BaseController {
+class BotConfigGB extends BaseRESTController {
 
     /**
      * @var string Log tag
@@ -31,12 +33,20 @@ class BotConfigGB extends BaseController {
      */
     public $renderClassName = "BotConfigGB";
 
+    /**
+     * @var string  Main page, will be used for login if not already done
+     */
     protected $renderMainClass  = "Main";
 
+    /**
+     * @var array A Summary of bot information
+     */
     protected $botSummaryFields = ["id", "botType", "name", "description", "active"];
 
     /**
      * Return true if the user needs a login for this page.
+     * 
+     * @implements BaseController
      * 
      * @return boolean      true if login is needed for the page, othwerwise false.
      */
@@ -47,10 +57,90 @@ class BotConfigGB extends BaseController {
     /**
      * Allowed access methods (e.g. ["GET", "POST"]).
      * 
+     * @implements BaseController
+     * 
      * @return string array     Array of access method names.
      */
     public function getAccessMethods() {
         return ["GET", "POST"];
+    }
+
+    /**
+     * Create the bot model.
+     * 
+     * @implements BaseRESTController
+     * 
+     * @param int $botId   Pass a bot ID or 0. Pass 0 in order to create
+     *                       a clear model without loading from database.
+     * @return Object       The bot model
+     */
+    protected function createModel($botId = null) {
+        return new GreetingBotModel($botId);
+    }
+
+    /**
+     * Return a list of all available bot IDs in database.
+     * 
+     * @implements BaseRESTController
+     * 
+     * @return array  Array of bot IDs in database.
+     */
+    protected function getAllIDs() {
+        return GreetingBot::getAllIDs();
+    }
+
+    /**
+     * Set the bot default paramerers.
+     * 
+     * @implements BaseRESTController
+     * 
+     * @param Object $obj    The object which is created
+     * @param array $params  Service call parameters (GET or POST)
+     */
+    protected function setObjectDefaultParameters($obj, $params) {
+        // common parameters
+        $obj->setFieldValue("name", $this->getParamString($params, "name", "New Bot"));
+        $obj->setFieldValue("description", $this->getParamString($params, "description", ""));
+        $obj->setFieldValue("active", 1);
+
+        // bot specific parameters
+        $obj->setFieldValue("greetingText", $this->getParamString($params, "greetingText", ""));        
+    }
+
+    /**
+     * Update the bot parameters.
+     * 
+     * @param Object $obj    The object which is updated
+     * @param array $params  Service call parameters (GET or POST)
+     */
+    protected function updateObjectParameters($obj, $params) {
+        // common bot parameters
+        if (isset($params["name"])) {
+            $obj->setFieldValue("name", $this->getParamString($params, "name", ""));
+        }
+        if (isset($params["description"])) {
+            $obj->setFieldValue("description", $this->getParamString($params, "description", ""));
+        }
+        if (isset($params["active"])) {
+            $obj->setFieldValue("active", ($this->getParamNummeric($params, "active", 1) === 1) ? 1 : 0);
+        }
+
+        // bot specific parameters
+        if (isset($params["greetingText"])) {
+            $obj->setFieldValue("greetingText", $this->getParamString($params, "greetingText", ""));
+        }
+    }
+
+    /**
+     * Return which data fields should be used for summary displays.
+     * Here is a standard compilation, derived classes can return their specific fields.
+     * 
+     * @overrides BaseRESTController
+     * 
+     * @return array    Array with data field names used for summary displays.
+     */
+    protected function getSummaryFields() {
+        return $this->botSummaryFields;
     }
 
     /**
@@ -65,181 +155,12 @@ class BotConfigGB extends BaseController {
             return;
         }
 
-        // check the params
-        if (isset($parameters["POST"])) {
-            foreach($parameters["POST"] as $param => $val) {
-                $params[$param] = $val;
-            }
-        }
-        if (isset($parameters["GET"])) {
-            foreach($parameters["GET"] as $param => $val) {
-                $params[$param] = $val;
-            }
-        }
+        // get the combined params
+        $params = $this->combineRequestParameters($parameters);
 
-        if (isset($params["list"])) {
-            $this->createRespJsonAllBots();
-        }
-        else if (isset($params["id"])) {
-            $this->createRespJsonBot($params["id"]);
-        }
-        else if (isset($params["create"])) {
-            $this->cmdCreateBot($params);
-        }
-        else if (isset($params["update"])) {
-            $this->cmdUpdateBot($params);
-        }
-        else if (isset($params["delete"])) {
-            $this->cmdDeleteBot($params);
-        }
-        else {
-            $this->renderView($this->renderClassName, null);
-        }
-    }
-
-    /**
-     * Create a JSON response for all available bots.
-     * 
-     * @return boolean true if successful, otherweise false
-     */
-    protected function createRespJsonAllBots() {
-
-        $response = [];
-        $bot = new GreetingBotModel();
-        $botids = $bot->getAllObjectIDs();
-        if (is_null($botids)) {
-            Log::error(self::$TAG, "Could not access the database!");
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
-            return false;
-        }
-
-        foreach($botids as $id) {
-            $botcfg = new GreetingBotModel($id);
-            if (is_null($botcfg)) {
-                Log::warning(self::$TAG, "Could not access the database!");
-                Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
-                return false;
-            }
-            $record = [];
-            foreach($botcfg->getFields() as $field => $value) {
-                if (!in_array($field, $this->botSummaryFields)) {
-                    continue;
-                }
-                $record[$field] = $value;
-            }
-            $response[] = $record;
-        }
-        $json = json_encode(["result" => "ok", "data" => $response]);
-        Log::printEcho($json);
-        return true;
-    }
-
-    /**
-     * Create a JSON response for a bot configuration given its ID.
-     * 
-     * @param int $id   Bot ID
-     * @return boolean  true if successful, otherweise false
-     */
-    protected function createRespJsonBot($id) {
-        
-        $bot = new GreetingBotModel($id);
-        if (is_null($bot->getObjectID())) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
-            return false;
-        }
-
-        $response = [];
-        foreach($bot->getFields() as $field => $value) {
-            $response[$field] = $value;
-        }
-        $json = json_encode(["result" => "ok", "data" => $response]);
-        Log::printEcho($json);
-        return true;
-    }
-
-    /**
-     * Create a new bot.
-     * 
-     * @param array $params   Page parameters containing the bot configuration
-     */
-    protected function cmdCreateBot($params) {
-
-        $bot = new GreetingBotModel();
-        $bot->setFieldValue("name", $this->getParamString($params, "name", "New Bot"));
-        $bot->setFieldValue("description", $this->getParamString($params, "description", ""));
-        $bot->setFieldValue("active", 1);
-        $bot->setFieldValue("greetingText", $this->getParamString($params, "greetingText", ""));
-        $id = $bot->create();
-        
-        if (is_null($id)) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
-        }
-        else {
-            $json = json_encode(["result" => "ok", "data" => ["id" => $bot->getObjectID()]]);
-            Log::printEcho($json);
-        }
-    }
-
-    /**
-     * Update a bot. The bot ID must be given in parameter field "update".
-     * 
-     * @param array $params      Page parameters, expected bot ID must be in field "update".
-     */
-    protected function cmdUpdateBot($params) {
-
-        if (!isset($params["update"])) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "invalid input"]));
-            return;
-        }
-
-        $botid = $params["update"];
-        $bot = new GreetingBotModel($botid);
-        if ($bot->getObjectID() === 0) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "invalid ID"]));
-            return;
-        }
-
-        if (isset($params["name"])) {
-            $bot->setFieldValue("name", $this->getParamString($params, "name", ""));
-        }
-        if (isset($params["description"])) {
-            $bot->setFieldValue("description", $this->getParamString($params, "description", ""));
-        }
-        if (isset($params["active"])) {
-            $bot->setFieldValue("active", ($this->getParamNummeric($params, "active", 1) === 1) ? 1 : 0);
-        }
-        if (isset($params["greetingText"])) {
-            $bot->setFieldValue("greetingText", $this->getParamString($params, "greetingText", ""));
-        }
-
-        if ($bot->update() === false) {
-             Log::printEcho(json_encode(["result" => "nok", "reason" => "db"]));
-        }
-        else {
-            $json = json_encode(["result" => "ok", "data" => ["id" => $bot->getObjectID()]]);
-            Log::printEcho($json);
-        }
-    }
-
-    /**
-     * Delete a bot. The bot ID must be given in parameter field "delete".
-     * 
-     * @param array $params  Page parameters, expected bot ID must be in field "delete".
-     */
-    protected function cmdDeleteBot($params) {
-
-        if (!isset($params["delete"])) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "invalid input"]));
-            return;
-        }
-
-        $botid = $params["delete"];
-        $bot = new GreetingBotModel($botid);
-        if ($bot->delete() === false) {
-            Log::printEcho(json_encode(["result" => "nok", "reason" => "invalid ID"]));
-        }
-        else {
-            Log::printEcho(json_encode(["result" => "ok", "data" => ["id" => $botid]]));
+        // first check for a REST request
+        if (!$this->handleRestRequest($params)) {            
+            $this->renderView($this->renderClassName);
         }
     }
 }

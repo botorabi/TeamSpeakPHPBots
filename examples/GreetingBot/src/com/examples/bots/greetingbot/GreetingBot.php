@@ -27,11 +27,6 @@ class GreetingBot extends BotBase {
     protected static $TAG = "GreetingBot";
 
     /**
-     * @var sting Bot type
-     */
-    public static $BOT_TYPE = "GreetingBot";
-
-    /**
      *
      * @var GreetingBotModel  Database model of the bot. All bot paramerers are hold here.
      */
@@ -49,6 +44,18 @@ class GreetingBot extends BotBase {
     }
 
     /**
+     * Get all available bot IDs.
+     * This is used by bot manager for loading all available bots from database.
+     * 
+     * @implements base class method
+     * 
+     * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
+     */
+    static public function getAllIDs() {
+        return (new GreetingBotModel)->getAllObjectIDs();
+    }
+
+    /**
      * Create a new bot instance.
      * 
      * @implements base class method
@@ -60,6 +67,33 @@ class GreetingBot extends BotBase {
         return new GreetingBot($server);
     }
 
+   /**
+     * Load the bot from database and check its data.
+     * 
+     * @implements base class method
+     * 
+     * @param int $botId    Bot ID (database table row ID)
+     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     */
+    public function initialize($botId) {
+
+        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $botId);
+
+        if ($this->model->loadObject($botId) === false) {
+            Log::warning(self::$TAG, "could not load bot from database: id " . $botId);
+            return false;
+        }
+
+        Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
+
+        if (strlen($this->model->greetingText) === 0) {
+            Log::warning(self::$TAG, "empty greeting text detected, deactivating the bot!");
+            $this->model->active = 0;
+        }
+
+        return true;
+    }
+
     /**
      * Get the bot type.
      * 
@@ -68,7 +102,7 @@ class GreetingBot extends BotBase {
      * @return string       The bot type
      */
     public function getType() {
-        return self::$BOT_TYPE;
+        return $this->model->botType;
     }
 
     /**
@@ -106,33 +140,6 @@ class GreetingBot extends BotBase {
     }
 
     /**
-     * Load the bot from database.
-     * 
-     * @implements base class method
-     * 
-     * @param int $id       Bot ID (database table row ID)
-     * @return boolean      Return false if the object was not loaded, otherwise true.
-     */
-    public function load($id) {
-
-        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $id);
-
-        if ($this->model->loadObject($id) === false) {
-            Log::warning(self::$TAG, "could not load bot from database: id " . $id);
-            return false;
-        }
-
-        Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
-
-        if (strlen($this->model->greetingText) === 0) {
-            Log::warning(self::$TAG, "empty greeting text detected, deactivating the bot!");
-            $this->model->active = false;
-        }
-
-        return true;
-    }
-
-    /**
      * The bot configuration was changed.
      * 
      * @implements base class method
@@ -144,7 +151,7 @@ class GreetingBot extends BotBase {
             Log::debug(self::$TAG, "reloading bot configuration, type: " . $this->getType() . ", name: " .
                                    $this->getName() . ", id: " . $this->getID());
 
-            $this->load($this->getID());
+            $this->initialize($this->getID());
         }
         else {
             Log::warning(self::$TAG, "the bot was not loaded before, cannot handle its config update!");
@@ -160,6 +167,11 @@ class GreetingBot extends BotBase {
      * @param Object $host         Server host
      */
     public function onServerEvent($event, $host) {
+
+        // skip updating if the bot is not active
+        if ($this->model->active == 0) {
+            return;
+        }
 
         if (strcmp($event->getType(), "cliententerview") === 0) {
 

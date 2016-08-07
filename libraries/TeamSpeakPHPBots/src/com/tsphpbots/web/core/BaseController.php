@@ -7,7 +7,7 @@
  *          main directory for more details.
  */
 
-namespace com\tsphpbots\web\controller;
+namespace com\tsphpbots\web\core;
 use com\tsphpbots\config\Config;
 use com\tsphpbots\utils\Log;
 use com\tsphpbots\user\Auth;
@@ -17,7 +17,7 @@ use com\tsphpbots\user\Auth;
  * functionalities such as page template and include resolution, HTML variable
  * resolution, and view rendering.
  * 
- * @package   com\tsphpbots\web\controller
+ * @package   com\tsphpbots\web\core
  * @created   22th June 2016
  * @author    Botorabi
  */
@@ -106,6 +106,29 @@ abstract class BaseController {
     /**
      * ###########################################
      */
+
+
+    /**
+     * Given an array containing GET and POST sub-arrays, combine them to one single array.
+     * This utility method is used when it does not matter if a parameter was given by POST or GET.
+     * 
+     * @param array $parameters  URL parameters possibly containing GET and POST
+     * @return array             Flat array containing GET and POST parameters
+     */
+    public function combineRequestParameters($parameters) {
+        $params = [];
+        if (isset($parameters["POST"])) {
+            foreach($parameters["POST"] as $param => $val) {
+                $params[$param] = $val;
+            }
+        }
+        if (isset($parameters["GET"])) {
+            foreach($parameters["GET"] as $param => $val) {
+                $params[$param] = $val;
+            }
+        }
+        return $params;
+    }
 
     /**
      * Render the content of a template file basing on the given controller class name and

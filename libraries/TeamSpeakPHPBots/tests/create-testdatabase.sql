@@ -42,7 +42,20 @@ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='User Table used for
 DROP TABLE IF EXISTS `dbobject`;
 CREATE TABLE `dbobject` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) NOT NULL,
+  `name` varchar(45) DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+)
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='DBObject Table used for automated testing.';
+
+DROP TABLE IF EXISTS `testbot`;
+CREATE TABLE `testbot` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `botType` varchar(45) DEFAULT '',
+  `name` varchar(45) DEFAULT '',
+  `description` varchar(256) DEFAULT '',
+  `active` TINYINT(1) DEFAULT '1',
+  `nickName` varchar(45) DEFAULT 'TestBot',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 )

@@ -8,7 +8,7 @@
  */
 
 namespace com\tsphpbots\web\controller;
-use com\tsphpbots\web\controller\BaseController;
+use com\tsphpbots\web\core\BaseController;
 use com\tsphpbots\user\User;
 use com\tsphpbots\user\Auth;
 use com\tsphpbots\utils\Log;
@@ -135,10 +135,10 @@ class UserAdmin extends BaseController {
         // operations which are preserved to admin
         if ($this->loggedInUser->getRoles() & User::$USER_ROLE_ADMIN) {
             if (isset($params["list"])) {
-                $this->createRespJsonUserSummary();
+                $this->cmdUserList();
             }
             else if (isset($params["id"])) {
-                $this->createRespJsonUser($params["id"]);
+                $this->cmdUserDetails($params["id"]);
             }
             else if (isset($params["create"])) {
                 $this->cmdCreateUser($params);
@@ -156,10 +156,10 @@ class UserAdmin extends BaseController {
         else { // other user roles go here
 
             if (isset($params["list"])) {
-                $this->createRespJsonUserSummary($this->loggedInUser->getObjectID());
+                $this->cmdUserList($this->loggedInUser->getObjectID());
             }
             else if (isset($params["id"])) {
-                 $this->createRespJsonUser($this->loggedInUser->getObjectID());
+                 $this->cmdUserDetails($this->loggedInUser->getObjectID());
             }
             else if (isset($params["update"])) {
                 $this->cmdUpdateUser($params);
@@ -193,7 +193,7 @@ class UserAdmin extends BaseController {
      *                      otherwise all users are listed in the summary.
      * @return boolean      Return true if successful, otherweise false
      */
-    protected function createRespJsonUserSummary($userID = null) {
+    protected function cmdUserList($userID = null) {
 
         $response = [];
         if (is_null($userID)) {
@@ -248,7 +248,7 @@ class UserAdmin extends BaseController {
      * @param int $id     User ID
      * @return boolean    Return true if successful, otherweise false
      */
-    protected function createRespJsonUser($id) {
+    protected function cmdUserDetails($id) {
         
         $user = new User($id);
         if (is_null($user->getObjectID())) {
@@ -308,7 +308,7 @@ class UserAdmin extends BaseController {
             Log::printEcho(json_encode(["result" => "nok", "reason" => "invalid input: Password", "data" => "password"]));
             return;
         }
-            
+
         $user->setFieldValue("lastLogin", 0);
         $user->setFieldValue("active", 1);
         $user->setFieldValue("name", $this->getParamString($params, "name", ""));

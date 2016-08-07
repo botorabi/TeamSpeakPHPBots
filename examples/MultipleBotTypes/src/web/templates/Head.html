@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>TeamSpeakPHPBots Example: Multiple Bot Types</title>
+		<link href="/favicon.ico" type="image/x-icon" rel="icon" />
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<script src="<!--dirLibs-->/jquery/jquery.js?v=<!--webVersion-->"></script>
+		<script src="<!--dirLibs-->/jquery-ui/jquery-ui.min.js?v=<!--webVersion-->"></script>
+		<script src="<!--dirLibs-->/md5.min.js?v=<!--webVersion-->"></script>
+		<script src="<!--dirJs-->/rest.js?v=<!--webVersion-->"></script>
+		<script src="<!--dirJs-->/logger.js?v=<!--webVersion-->"></script>
+		<script src="<!--dirJs-->/layout.js?v=<!--webVersion-->"></script>
+		<link href="<!--dirLibs-->/jquery-ui/jquery-ui.min.css?v=<!--webVersion-->" rel="stylesheet">
+		<link href="<!--dirStyles-->/main.css?v=<!--webVersion-->" rel="stylesheet">
+		<script>
+			var userName = "<!--userName-->";
+			var timeoutCheckIntv = 30000;
+			function init() {
+				setupMenu();
+				// check if the login dialog should be displayed initially
+				var logindlg = "<!--loginDlg-->";
+				if (logindlg === "on") {
+					showLoginDialog();
+				}
+				if (userName !== "") {
+					$("#logininfoId").html("User: " + userName);
+				}
+
+				var logger = createLogger(LOG_ALL, "Main");
+				initLAYOUT(logger);
+				initREST(logger);
+
+				// if the content has an init script then call it now
+				if (typeof initContent != "undefined") {
+					initContent();
+				}
+				if (userName !== "") {
+					startTimeLeftUpdater(0);
+				}
+			}
+
+			function updateLeftTimeText(leftTime) {
+				if (leftTime > 0) {
+					if (leftTime > 60) {
+						var t = Math.floor(leftTime/60);
+						var plural = t > 1 ? "s" : "";
+						$("#timeleftId").html(" [Logout in " + t + " minute" + plural + "]");
+					}
+					else {
+						timeoutCheckIntv = 1000;
+						var plural = leftTime > 1 ? "s" : "";
+						$("#timeleftId").html(" [Logout in " + leftTime + " second" + plural + "]");
+					}
+				}
+				else {
+					$("#timeleftId").html("");
+				}
+			}
+
+			function startTimeLeftUpdater(delay) {
+				setTimeout(function() {
+					REST.getTimeLeft(function(res) {
+						updateLeftTimeText(res.timeLeft);
+						if (res.timeLeft == 0) {
+							if (res.timeLeft != -1) {
+								showSessionExpiredDialog();
+							}
+						}
+						else{
+							startTimeLeftUpdater(timeoutCheckIntv);
+						}
+					})
+				}, delay);
+			}
+
+			function showMessageDialog(title, text, btnText1, btnCallback1, btnText2, btnCallback2) {
+				
+				btns = [{
+							id : "_btn1_id_",
+							click: function() {
+								$(this).dialog("close");
+								if (btnCallback1) {
+									btnCallback1();
+								}
+							}
+						}];
+				if (btnText2) {
+					btns.push({
+						id : "_btn2_id_",
+						click: function() {
+							$(this).dialog("close");
+							if (btnCallback2) {
+								btnCallback2();
+							}
+						}
+					});
+				}
+						
+				$("#dialogId").html(text);
+				$("#dialogId").dialog({
+					resizable: false,
+					modal: true,
+					width: 300,
+					draggable: false,
+					buttons: btns
+				});
+				$('#_btn1_id_').button('option', 'label', btnText1);
+				if (btnText2) {
+					$('#_btn2_id_').button('option', 'label', btnText2);
+				}
+				$('#dialogId').dialog('option', 'title', title);
+			}
+
+			function showAboutDialog() {
+				var dlg = $("#dialogAboutId").dialog({
+					dialogClass: "no-close",
+					draggable: false,
+					autoOpen: false,
+					resizable: false,
+					modal: true,
+					buttons:{
+						"Ok": function(event) {
+							$(this).dialog( "close" );
+						}
+					}
+				  });
+				dlg.dialog("open");
+				dlg.dialog("moveToTop");
+			}
+
+			function setupMenu() {
+				$("#menuDropdownId").menu();
+				$("#menuDropdownId").hide();
+				$("#menuDropdownId").menu({ select: function(event, ui) {
+					switch(ui.item.attr("id")) {
+						case "menuAbout":
+							showAboutDialog();
+							break;
+						case "menuAuth":
+							if (userName !== "") {
+								window.location.href="?page=Logout";
+							}
+							else {
+								showLoginDialog();
+							}
+							break;
+						case "menuHome":
+							window.location.href="?page=Main";
+							break;
+						case "menuUserAdmin":
+							window.location.href="?page=UserAdministration";
+							break;
+						case "menuBotConfig":
+							window.location.href="?page=BotConfigGB";
+							break;
+						case "menuBotService":
+							window.location.href="?page=BotServer";
+							break;							
+					}
+					// why do we need to handle this ourselves?
+					event.stopPropagation();
+					$("#menuDropdownId").toggle("slide");
+				}});
+				// setup the menu items
+				if (userName === "") {
+					$("#menuUserName").hide();
+					$("#menuAuth").html("Login");
+				}
+				else {
+					$("#menuUserName").addClass('ui-state-disabled').off('click');
+					$("#menuAuth").html("Logout");
+				}
+			}
+
+			function onMenuClicked(event) {
+				$("#menuDropdownId").toggle("slide");
+				event.stopPropagation();
+			}
+
+			function processLogin() {
+				var n = $("#usernameId");
+				var p = $("#passwordId");
+				n.removeClass("ui-state-error");
+				p.removeClass("ui-state-error");
+				$("#dialogLoginId").dialog('option', 'title', 'Login');
+				if (n.val().length < 1) {
+					n.addClass("ui-state-error");
+					return false;
+				}
+				if (p.val().length < 1) {
+					p.addClass("ui-state-error");
+					return false;
+				}
+				$.ajax({
+					type: "POST",
+					url: "?page=Login",
+					data: $.param({ un: $("#usernameId").val(),pw: md5(md5($("#passwordId").val())+'<!--SID-->')}),
+					success: function(data) {
+						var doc = document.open("text/html", "replace");
+						doc.write(data);
+						doc.close();
+					}
+				});
+				return true;
+			}
+
+			function showLoginDialog() {
+				$("#dialogLoginId").show();
+				var dlg = $("#dialogLoginId").dialog({
+					dialogClass: "no-close",
+					draggable: false,
+					autoOpen: false,
+					resizable: false,
+					width: 300,
+					modal: true,
+					buttons:{
+						"Cancel": function(event) {
+							$(this).dialog( "close" );
+						},
+						"Login": function(event) {
+							processLogin();
+						}
+					}
+				  });
+				dlg.find("form").on("submit", function(event) {
+					event.preventDefault();
+					processLogin();
+				});
+				dlg.dialog("open");
+				dlg.dialog("moveToTop");
+			}
+
+			function showSessionExpiredDialog() {
+				$("#dialogSessionExpiredId").show();
+				var dlg = $("#dialogSessionExpiredId").dialog({
+					dialogClass: "no-close",
+					draggable: false,
+					autoOpen: false,
+					resizable: false,
+					width: 300,
+					modal: true,
+					buttons:{
+						"Ok": function(event) {
+							$(this).dialog( "close" );
+							window.location.href='?page=Main&login=';
+						}
+					}
+				});
+				dlg.find("form").on("submit", function(event) {
+					event.preventDefault();
+				  });
+				dlg.dialog("open");
+				dlg.dialog("moveToTop");
+			}
+
+			function onBodyClicked(event) {
+				if ($("#menuDropdownId").is( ":visible" )) {
+					$("#menuDropdownId").toggle("slide");
+				}
+				event.stopPropagation();
+			}
+
+		</script>
+	</head>
+	<body onload="init();" onclick="onBodyClicked(event);">
+		<div class="header">
+			<div class="menuimg">
+				<img id="menubtnId" src="<!--dirImages-->/menu.png" alt="Menu" title="Menu" onclick="onMenuClicked(event);">
+			</div>
+			<div id="backbtnId" class="backimg" style="display: none;">
+				<img src="<!--dirImages-->/menuback.png" alt="Main Page" title="Main" onclick="window.location.href='?page=Main';">
+			</div>
+			<ul class ="menu" id="menuDropdownId" style='display: none;'>
+				<li id="menuUserName">Hi <!--userName--></li>
+				<li id="menuAuth">Login</li>
+				<li><hr /></li>
+				<li id="menuHome">Home</li>
+				<li id="menuUserAdmin">User</li>
+				<li id="menuBotConfig">Bot Config</li>
+				<li id="menuBotService">Bot Server</li>
+				<li><hr /></li>
+				<li id="menuAbout">About</li>
+				<li><hr /></li>
+				<li><img src="<!--dirImages-->/logo.png" alt="Logo"></li>
+			</ul>
+
+			<div class="headline">TeamSpeakPHPBots<br>Example App: Multiple Bot Types</div>
+		</div>
+
+		<div id="dialogAboutId" style="display: none; text-align: center;" title="About">
+			<p></p>
+			<p><strong>TeamSpeakPHPBots</strong><br>
+				Example Application<br><br>
+				Copyright 2016<br>
+				All Rights Reserved<br><br>
+				Version: <!--webVersion--></p><br>
+				<a href="https://github.com/botorabi/TeamSpeakPHPBots">Visit us on GitHub</a>
+		</div>
+
+		<div id="dialogLoginId" title="Login" style="display: none;" class="inputDialog">
+			<form id="loginForm">
+				<p>Login (Name or E-Mail)</p>
+				<input type="text" name="un" id="usernameId" value="">
+				<p>Password</p>
+				<input type="password" name="pw" id="passwordId" value="" class="text ui-widget-content ui-corner-all">
+				<input type="submit" tabindex="-1" style="display: none;">
+			</form>
+		</div>
+		<div id="dialogSessionExpiredId" title="Session Timeout" style="display: none;" class="inputDialog">
+			<form id="sessionForm">
+				<p>Session was closed.<br>Please, login again.</p>
+				<input type="submit" tabindex="-1" style="display: none;">
+			</form>
+		</div>
+		<div id="dialogId"></div>
+<!--###########-->

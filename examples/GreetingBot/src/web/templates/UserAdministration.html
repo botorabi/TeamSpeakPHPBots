@@ -141,10 +141,10 @@
 			width: 370,
 			modal: true,
 			buttons:{
-				"Abbrechen": function(event) {
+				"Cancel": function(event) {
 					$(this).dialog( "close" );
 				},
-				"Erstellen": function(event) {
+				"Create": function(event) {
 					processUserCreate();
 				}
 			}
@@ -173,10 +173,10 @@
 					width: 370,
 					modal: true,
 					buttons:{
-						"Abbrechen": function(event) {
+						"Cancel": function(event) {
 							$(this).dialog( "close" );
 						},
-						"Ändern": function(event) {
+						"Apply": function(event) {
 							processUserModify(res.data.id);
 						}
 					}
@@ -196,8 +196,8 @@
 
 	function userDelete(id) {
 		showMessageDialog("Delete User", "Do you really want to delete the user?",
-		"Nein", null,
-		"Ja", function() {
+		"No", null,
+		"Yes", function() {
 			REST.deleteUser(id, function (res) {
 				if (res.result === "ok") {
 					showMessageDialog("Delete User", "User was successfully deleted.", "Ok", function() {
@@ -222,6 +222,7 @@
 			}
 		});
 	}
+
 	function setRole(id, role) {
 		REST.setRole(id, role, function (res) {
 			if (res.result === "ok") {
@@ -243,7 +244,7 @@
 				<td class="head"></td>
 				<td class="head"></td>
 				<td class="head"></td>
-				<td class="head status" style="width:150px; text-align: right;"><img id="adduserId" style="display: none;" class="imgClickable" src="<!--dirImages-->/user_add.png" alt="Neuer Benutzer" title="Neuer Benutzer" onclick="userNew();"></td>
+				<td class="head status" style="width:150px; text-align: right;"><img id="adduserId" style="display: none;" class="imgClickable" src="<!--dirImages-->/user_add.png" alt="New User" title="New User" onclick="userNew();"></td>
 				<td class="head" style="width:40px;"></td>
 			</tr>
 			<tr>
@@ -256,7 +257,7 @@
 			</tr>
 		</table>
 	</div>
-	<div id="dialogUserId" title="Benutzer" style="display: none; max-width: 600px;" class="inputDialog">
+	<div id="dialogUserId" title="User" style="display: none; max-width: 600px;" class="inputDialog">
 		<form id="userFormId">
 			<p>Login</p>
 			<input type="text" name="login" value="" readonly>
@@ -282,7 +283,7 @@
 			<input type="submit" tabindex="-1" style="display: none;">
 		</form>
 	</div>
-	<div id="dialogNewUserId" title="Neuer Benutzer" style="display: none; max-width: 600px;" class="inputDialog">
+	<div id="dialogNewUserId" title="New User" style="display: none; max-width: 600px;" class="inputDialog">
 		<form id="newUserFormId">
 			<p>Login</p>
 			<input type="text" name="login" value="">

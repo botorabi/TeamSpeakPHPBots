@@ -77,7 +77,9 @@ abstract class Auth {
             $currtime   = time();
             $lastupdate = $_SESSION[self::$SESSION_PREFIX][self::$SESSION_LAST_UPDATE];
 
-            if (($currtime - $lastupdate) > (60 * Config::getWebInterface("sessionTimeout"))) {
+            $timeout = 60 * Config::getWebInterface("sessionTimeout");
+            // timeout 0 means no timeout at all!
+            if (($timeout > 0) && (($currtime - $lastupdate) > $timeout)) {
                 unset($_SESSION[self::$SESSION_PREFIX]);
                 // note that the session may not have been started (this can happen e.g. during tests)
                 if (session_id() != '') {
@@ -86,7 +88,8 @@ abstract class Auth {
                 //Log::verbose(self::$TAG, "*** session expired");
                 return false;
             }
-            else if (($currtime - $lastupdate) > self::$SESSION_SID_UPDATE_TIME) {
+
+            if (($currtime - $lastupdate) > self::$SESSION_SID_UPDATE_TIME) {
                 session_regenerate_id(true);
                 //Log::verbose(self::$TAG, "*** sid was recreated");
             }
@@ -170,18 +173,24 @@ abstract class Auth {
     }
 
     /**
-     * Time left until automatic logout after long inactivity.
+     * Time left until automatic logout after long inactivity. If no timeout is
+     * set in web interface configuration then the method returns a value less than 0.
      * 
-     * @return int Time left in seconds
+     * @return int Time left in seconds, or a value < 0 if no timeout is configured.
      */
     static public function leftTime() {
+
+        // check if a timeout is configured
+        $timeout = 60 * Config::getWebInterface("sessionTimeout");
+        if ($timeout === 0) {
+            return -1;
+        }
 
         $timeleft = 0;
         if (isset($_SESSION[self::$SESSION_PREFIX]) &&
             isset($_SESSION[self::$SESSION_PREFIX][self::$SESSION_LAST_UPDATE])) {
     
-            $timeleft = (60 * Config::getWebInterface("sessionTimeout")) -
-                        (time() - $_SESSION[self::$SESSION_PREFIX][self::$SESSION_LAST_UPDATE]);
+            $timeleft = $timeout - (time() - $_SESSION[self::$SESSION_PREFIX][self::$SESSION_LAST_UPDATE]);
             if ($timeleft < 0) {
                 $timeleft = 0;
             }

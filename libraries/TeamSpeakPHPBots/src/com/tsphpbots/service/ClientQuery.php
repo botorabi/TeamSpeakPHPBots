@@ -129,12 +129,35 @@ class ClientQuery {
     }
 
     /**
-     * Update the bot given its ID.
+     * Update the bot given its ID and type.
      * 
-     * @param int $id       Bot ID
-     * @return string       The bot update attempt's result if successful, otherwise null.
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     * @return string               The bot update attempt's result if successful, otherwise null.
      */
-    public function updateBot($id) {
-        return $this->getServiceResponse("updatebot " . $id);
+    public function botUpdate($botType, $id) {
+        return $this->getServiceResponse("botupdate " . $botType . " " . $id);
+    }
+
+    /**
+     * Add the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     * @return string               The bot update attempt's result if successful, otherwise null.
+     */
+    public function botAdd($botType, $id) {
+        return $this->getServiceResponse("botadd " . $botType . " " . $id);
+    }
+
+    /**
+     * Delete the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     * @return string               The bot update attempt's result if successful, otherwise null.
+     */
+    public function botDelete($botType, $id) {
+        return $this->getServiceResponse("botdelete " . $botType . " " . $id);
     }
 }

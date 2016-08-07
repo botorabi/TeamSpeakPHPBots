@@ -7,7 +7,7 @@
  *          main directory for more details.
  */
 
-require_once("../libraries/TeamSpeak3/TeamSpeak3.php");
+require_once("../../libraries/TeamSpeak3/TeamSpeak3.php");
 require_once("../config/Configuration.php");
 
 use com\tsphpbots\service\ServerQuery;

@@ -1,0 +1,259 @@
+<!--INCLUDE:Head.html-->
+<script>
+
+	var GREETING_BOT_CTRL_PAGE = "BotConfigGB";
+	var CHAT_BOT_CTRL_PAGE     = "BotConfigCB";
+	function initContent() {
+		$("#backbtnId").show();
+		setupBotLists(GREETING_BOT_CTRL_PAGE, "table" + GREETING_BOT_CTRL_PAGE);
+		setupBotLists(CHAT_BOT_CTRL_PAGE, "table" + CHAT_BOT_CTRL_PAGE);
+	}
+
+	function setupBotLists(botCtrlPage, tableId) {
+		REST.getBotList(botCtrlPage, function (res) {
+			if (res.result === "ok") {
+				LAYOUT.putBotList(botCtrlPage, tableId, res.data, function (op, botCtrlPage, botType, id) {
+					switch(op) {
+						case "delete":
+							botDelete(botCtrlPage, botType, id);
+							break;
+						case "modify":
+							botModify(botCtrlPage, botType, id);
+							break;
+						case "enableBot":
+							botEnable(botCtrlPage, botType, id, true);
+							break;
+						case "disableBot":
+							botEnable(botCtrlPage, botType, id, false);
+							break;
+						default:
+							;
+					}
+				});
+			}
+		});
+	}
+
+	function processBotCreate(botCtrlPage) {
+		REST.createBot(botCtrlPage, "form" + botCtrlPage, function(res) {
+			if (res.result === "ok") {
+				notifyServiceBotAdd(res.data.botType, res.data.id);
+				showMessageDialog("New Bot", "Bot was successfully created.", "Ok",  function() {
+					location.reload();				
+				});
+			}
+			else {
+				showMessageDialog("New Bot", "Bot could not be created!\nReason: " + res.reason, "Ok",  function() {
+					location.reload();				
+				});
+			}
+		});
+	}
+
+	function processBotModify(botCtrlPage, botType, id) {
+		REST.updateBot(botCtrlPage, id, "form" + botCtrlPage, function(res) {
+			if (res.result === "ok") {
+				showMessageDialog("Bot Configuration", "Bot was successfully updated.", "Ok",  function() {
+					location.reload();				
+				});
+				notifyServiceBotUpdate(botType, id);
+			}
+			else {
+				showMessageDialog("Bot Configuration", "Bot could not be updated!\nReason: " + res.reason, "Ok",  function() {
+					location.reload();				
+				});
+			}
+		});
+	}
+
+	function onBodyClicked(event) {
+		if ($("#menuDropdownId").is( ":visible" )) {
+			$("#menuDropdownId").toggle("slide");
+		}
+		event.stopPropagation();
+	}
+
+	function botNew(botCtrlPage) {
+		var elemdlgsel = "#dialog" + botCtrlPage;
+		$(elemdlgsel).show();
+		var dlg = $(elemdlgsel).dialog({
+			dialogClass: "no-close",
+			draggable: false,
+			autoOpen: false,
+			resizable: false,
+			width: 370,
+			modal: true,
+			buttons:{
+				"Cancel": function(event) {
+					$(this).dialog( "close" );
+				},
+				"Create": function(event) {
+					processBotCreate(botCtrlPage);
+				}
+			}
+		});
+		dlg.find("form").on("submit", function(event) {
+			event.preventDefault();
+			processBotCreate(botCtrlPage);
+		});
+		dlg.dialog("open");
+		dlg.dialog("moveToTop");
+	}
+
+	function botModify(botCtrlPage, botType, id) {
+		REST.getBot(botCtrlPage, id, function(res) {
+			if (res.result === "ok") {
+				// fill the form inputs
+				var elemformsel = "#form" + botCtrlPage;
+				$.each(res.data, function(field, value) {
+					$(elemformsel + ' :input[name="' + field + '"]').val(value);
+				});
+				var elemdlgsel = "#dialog" + botCtrlPage;
+				$(elemdlgsel).show();
+				var dlg = $(elemdlgsel).dialog({
+					dialogClass: "no-close",
+					draggable: false,
+					autoOpen: false,
+					resizable: false,
+					width: 370,
+					modal: true,
+					buttons:{
+						"Cancel": function(event) {
+							$(this).dialog( "close" );
+						},
+						"Apply": function(event) {
+							$(this).dialog( "close" );
+							processBotModify(botCtrlPage, botType, res.data.id);
+						}
+					}
+				});
+				dlg.find("form").on("submit", function(event) {
+					event.preventDefault();
+					processBotModify(botCtrlPage, botType, res.data.id);
+				});
+				dlg.dialog("open");
+				dlg.dialog("moveToTop");
+			}
+			else {
+				showMessageDialog("Modify Bot", "Bot could not be found!\nReason: " + res.reason, "Ok", null);
+			}
+		});
+	}
+
+	function botDelete(botCtrlPage, botType, id) {
+		showMessageDialog("Delete Bot", "Do you really want to delete the bot?",
+		"No", null,
+		"Yes", function() {
+			REST.deleteBot(botCtrlPage, id, function (res) {
+				if (res.result === "ok") {
+					notifyServiceBotDelete(botType, id);
+					showMessageDialog("Delete Bot", "Bot was successfully deleted.", "Ok", function() {
+						location.reload();				
+					});
+				}
+				else {
+					showMessageDialog("Delete Bot", "Bot could not be deleted.\nReason: " + res.reason, "Ok", null);
+				}
+			});
+		});
+	}
+
+	function botEnable(botCtrlPage, botType, id, enable) {
+		REST.enableBot(botCtrlPage, id, enable, function (res) {
+			if (res.result === "ok") {
+				setTimeout(function() {
+					notifyServiceBotUpdate(botType, id);
+				}, 500);
+			}
+			else {
+				showMessageDialog("Bot Activation", "Bot activation state could not be changed.\nReason: " + res.reason, "Ok", null);
+				location.reload();				
+			}
+		});
+	}
+
+	function notifyServiceBotAdd(botType, id) {
+		REST.botServiceAddBot(botType, id, function(res) {
+		});
+	}
+
+	function notifyServiceBotUpdate(botType, id) {
+		REST.botServiceUpdateBot(botType, id, function(res) {
+		});
+	}
+
+	function notifyServiceBotDelete(botType, id) {
+		REST.botServiceDeleteBot(botType, id, function(res) {
+		});
+	}
+
+</script>
+<div id="maincontentId" class="maincontent">
+	<!-- Greeting Bot -->
+	<div class="contentbots">
+		<table id="tableBotConfigGB" class="tablebots">
+			<tr>
+				<td class="head">Greeting Bots</td>
+				<td class="head"></td>
+				<td class="head"></td>
+				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="New Greeting Bot" title="New Greeting Bot" onclick="botNew('BotConfigGB');"></td>
+				<td class="head" style="width: 40px;"></td>
+			</tr>
+			<tr>
+				<th>Name</th>
+				<th>Type</th>
+				<th>Description</th>
+				<th style="text-align: center;">Aktive</th>
+				<td class="mods"></td>
+			</tr>
+		</table>
+	</div>
+	<div id="dialogBotConfigGB" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
+		<form id="formBotConfigGB">
+			<p>Name</p>
+			<input type="text" name="name" value="New Bot">
+			<p>Description</p>
+			<input type="text" name="description" value="">
+			<p>Greeting Text<br>
+				Use &lt;nick&gt; as place holder in your text.</p>
+			<input type="text" name="greetingText" value="">
+			<input type="submit" tabindex="-1" style="display: none;">
+		</form>
+	</div>
+	
+	<!-- Chat Bot -->
+	<div class="contentbots">
+		<table id="tableBotConfigCB" class="tablebots">
+			<tr>
+				<td class="head">Chat Bots</td>
+				<td class="head"></td>
+				<td class="head"></td>
+				<td class="head status" style="width:70px; text-align: center;"><img class="imgClickable" src="<!--dirImages-->/bot_add.png" alt="New Chat Bot" title="New Chat Bot" onclick="botNew('BotConfigCB');"></td>
+				<td class="head" style="width: 40px;"></td>
+			</tr>
+			<tr>
+				<th>Name</th>
+				<th>Type</th>
+				<th>Description</th>
+				<th style="text-align: center;">Aktive</th>
+				<td class="mods"></td>
+			</tr>
+		</table>
+	</div>
+	<div id="dialogBotConfigCB" title="Bot" style="display: none; max-width: 600px;" class="inputDialog">
+		<form id="formBotConfigCB">
+			<p>Name</p>
+			<input type="text" name="name" value="New Bot">
+			<p>Description</p>
+			<input type="text" name="description" value="">
+			<p>Channel ID (bot's channel)</p>
+			<input type="number" name="channelID" value="">
+			<p>Nick Name</p>
+			<input type="text" name="nickName" value="">
+			<p>Greeting Text<br>
+			<input type="text" name="greetingText" value="">
+			<input type="submit" tabindex="-1" style="display: none;">
+		</form>
+	</div>
+</div>	
+<!--INCLUDE:Footer.html-->
