@@ -77,11 +77,14 @@ abstract class BaseRESTController extends BaseController {
     }
 
     /**
-     * Handle an incoming request.
+     * Handle an incoming REST request.
      * 
      * @param array $params  URL parameters such as GET or POST
+     * @return boolean       Return true if one of supported REST commands was handled, otherwise false.
+     *                       Supported REST commands: list, id, create, update, delete
+     *                       Note that some commands need further parameters.
      */
-    public function handleRequest($params) {
+    public function handleRestRequest($params) {
 
         if (isset($params["list"])) {
             $this->cmdList();

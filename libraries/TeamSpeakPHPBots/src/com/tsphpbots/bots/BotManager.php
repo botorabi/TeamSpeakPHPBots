@@ -48,7 +48,7 @@ class BotManager {
     public function __construct($server) {
 
         if ($server == null) {
-            throw new Exception("Invalid TS3 server object!");
+            throw new \Exception("Invalid TS3 server object!");
         }
         $this->ts3Server = $server;
     }

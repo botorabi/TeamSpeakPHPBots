@@ -153,7 +153,7 @@ class BotConfigGB extends BaseRESTController {
         // get the combined params
         $params = $this->combineRequestParameters($parameters);
 
-        if (!$this->handleRequest($params)) {
+        if (!$this->handleRestRequest($params)) {
             Log::printEcho($this->createJsonResponse("nok", "Unsupported Request", null));
         }
     }

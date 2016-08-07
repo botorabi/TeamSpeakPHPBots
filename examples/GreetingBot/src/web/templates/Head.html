@@ -15,7 +15,6 @@
 		<link href="<!--dirStyles-->/main.css?v=<!--webVersion-->" rel="stylesheet">
 		<script>
 			var userName = "<!--userName-->";
-			var lastLeftTime = -1;
 			var timeoutCheckIntv = 30000;
 			function init() {
 				setupMenu();
@@ -69,7 +68,6 @@
 							}
 						}
 						else{
-							lastLeftTime = res.timeLeft;
 							startTimeLeftUpdater(timeoutCheckIntv);
 						}
 					})

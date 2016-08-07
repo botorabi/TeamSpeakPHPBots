@@ -96,6 +96,7 @@ class BotConfigCB extends BaseRESTController {
         // bot specific parameters
         $obj->setFieldValue("nickName", $this->getParamString($params, "nickName", ""));
         $obj->setFieldValue("channelID", $this->getParamNummeric($params, "channelID", 0));
+        $obj->setFieldValue("greetingText", $this->getParamString($params, "greetingText", 0));
     }
 
     /**
@@ -126,6 +127,9 @@ class BotConfigCB extends BaseRESTController {
         if (isset($params["channelID"])) {
             $obj->setFieldValue("channelID", $this->getParamNummeric($params, "channelID", 0));
         }
+        if (isset($params["greetingText"])) {
+            $obj->setFieldValue("greetingText", $this->getParamString($params, "greetingText", ""));
+        }
     }
 
     /**
@@ -155,7 +159,7 @@ class BotConfigCB extends BaseRESTController {
         // get the combined params
         $params = $this->combineRequestParameters($parameters);
 
-        if (!$this->handleRequest($params)) {
+        if (!$this->handleRestRequest($params)) {
             Log::printEcho($this->createJsonResponse("nok", "Unsupported Request", null));
         }
     }

@@ -8,20 +8,16 @@
  */
 
 namespace com\tsphpbots\bots;
+use com\tsphpbots\bots\BotBase;
+require_once(__DIR__ . '/TestBotModel.php');
 
 /**
- * Base class for all kinds of bots
+ * A bot class for testing framework's BaseBot
  * 
- * @package   com\tsphpbots\web\controller
- * @created   23th July 2016
- * @author    Botorabi
+ * @created:  6nd August 2016
+ * @author:   Botorabi (boto)
  */
-abstract class BotBase {
-
-    /**
-     * @var Object  TS3 server
-     */
-    protected $ts3Server = null;
+class TestBot extends BotBase {
 
     /**
      * Construct the bot manager.
@@ -30,11 +26,8 @@ abstract class BotBase {
      * @throws Exception        Throws exception if the given server is invalid.
      */
     public function __construct($server) {
-      
-        if ($server == null) {
-            throw new \Exception("Invalid TS3 server object!");
-        }
-        $this->ts3Server = $server;
+      parent::__construct($server);
+      $this->model = new TestBotModel;  
     }
 
     /**
@@ -43,7 +36,9 @@ abstract class BotBase {
      * 
      * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
      */
-    abstract static public function getAllIDs();
+    static public function getAllIDs() {
+        return TestBotModel::getAllObjectIDs();
+    }
 
     /**
      * Create a new bot instance.
@@ -51,7 +46,9 @@ abstract class BotBase {
      * @param Object $server TS3 Server object
      * @return Object        New instance of the bot.
      */
-    abstract static public function create($server);
+    static public function create($server) {
+        return new TestBot($server);
+    }
 
     /**
      * Initialize the bot. Usually the bot will load its data from database using the given bot ID.
@@ -60,21 +57,27 @@ abstract class BotBase {
      * @param int $botId    The database ID
      * @return boolean      Return true if the bot was initialized successfully, otherwise false.
      */
-    abstract public function initialize($botId);
+    public function initialize($botId) {
+        return $this->model->loadObject($botId);
+    }
 
     /**
      * Get the bot type.
      * 
      * @return string       The bot type
      */
-    abstract public function getType();
+    public function getType() {
+        return $this->model->botType;
+    }
 
     /**
      * Get the bot name.
      * 
      * @return string       The bot name
      */
-    abstract public function getName();
+    public function getName() {
+        return $this->model->name;
+    }
 
     /**
      * A bot may have a database model for persistence. If so then return an
@@ -83,19 +86,23 @@ abstract class BotBase {
      * @return Object  A database model object (expected to be a derived class from DBObject),
      *                 or null if the bot has no database model.
      */
-    abstract public function getModel();
+    public function getModel() {
+        return $this->model;
+    }
 
     /**
      * Get the unique bot ID.
      * 
      * @return int    The unique bot ID > 0, or 0 if the bot is not initialized yet.
      */
-    abstract public function getID();
+    public function getID() {
+        return $this->model->id;
+    }
 
     /**
      * Update the bot.
      */
-    abstract public function update();
+    public function update() {}
 
     /**
      * This method is called whenever a server event was received.
@@ -111,4 +118,5 @@ abstract class BotBase {
      * Override it in a derived class if it is needed.
      */
     public function onConfigUpdate() {}
+
 }

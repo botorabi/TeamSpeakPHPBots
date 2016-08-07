@@ -1,7 +1,7 @@
 <?php
 
-namespace com\tsphpbots\web\controller;
-use com\tsphpbots\web\controller\PageLoader;
+namespace com\tsphpbots\web\core;
+use com\tsphpbots\web\core\PageLoader;
 use com\tsphpbots\utils\TestUtils;
 use com\tsphpbots\utils\Log;
 use com\tsphpbots\user\Auth;

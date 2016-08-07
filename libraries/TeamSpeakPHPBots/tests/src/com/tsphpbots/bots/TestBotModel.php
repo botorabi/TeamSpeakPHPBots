@@ -7,30 +7,30 @@
  *          main directory for more details.
  */
 
-namespace com\examples\bots\chatbot;
+namespace com\tsphpbots\bots;
 use com\tsphpbots\config\Config;
 use com\tsphpbots\db\DBObject;
 
 
 /**
- * Data model for chat bot
+ * A data model class for testing framework's BaseBot
  * 
- * @created:  4nd August 2016
+ * @created:  6nd August 2016
  * @author:   Botorabi (boto)
  */
-class ChatBotModel extends DBObject {
+class TestBotModel extends DBObject {
 
-    protected static $TAG = "ChatBotModel";
+    protected static $TAG = "TestBotModel";
 
     /**
      * @var string Bot config table name
      */
-    private static $DB_TABLE_NAME_BOT = "chatbot";
+    private static $DB_TABLE_NAME_BOT = "testbot";
 
     /**
      * @var string Bot type
      */
-    private static $BOT_TYPE_NAME = "ChatBot";
+    private static $BOT_TYPE_NAME = "TestBot";
 
     /**
      * Setup the object fields. Note that a field called "id" is automatically
@@ -43,7 +43,6 @@ class ChatBotModel extends DBObject {
      *   description                    A short bot description
      *   active                         Enable/disable the bot (1/0)
      *   nickName                       Bot's nick name
-     *   channelID                      Channel ID, the bot will reside in this channel
      */
     public function setupFields() {
         $this->objectFields["botType"]       = self::$BOT_TYPE_NAME;
@@ -51,8 +50,6 @@ class ChatBotModel extends DBObject {
         $this->objectFields["description"]   = "";
         $this->objectFields["active"]        = 0;
         $this->objectFields["nickName"]      = "";
-        $this->objectFields["channelID"]     = 0;
-        $this->objectFields["greetingText"]  = "";
     }
 
     /**

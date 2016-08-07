@@ -33,6 +33,21 @@ class ChatBot extends BotBase {
     protected $model = null;
 
     /**
+     * @var array A queue used for replying to messages
+     */
+    protected $replyQueue = [];
+
+    /**
+     * @var boolean  Flag for issuring an initial greet.
+     */
+    protected $initialGreet = false;
+
+    /**
+     * @var array A queue for fresh entered users in bot's channel
+     */
+    protected $enterChannelQueue = [];
+    
+    /**
      * Construct a chat bot.
      * 
      * @param  $server      TS3 server object
@@ -84,12 +99,20 @@ class ChatBot extends BotBase {
             return false;
         }
 
+        $this->model->greetingText = trim($this->model->greetingText);
+        $this->model->nickName = trim($this->model->nickName);
+
         if (strlen(trim($this->model->nickName)) === 0) {
             Log::warning(self::$TAG, "empty nick name detected, deactivating the bot!");
             $this->model->active = 0;
         }
         else {
             Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
+        }
+
+        // check if there is a geeting text
+        if (strlen($this->model->greetingText) > 0) {
+            $this->initialGreet = true;
         }
 
         return true;
@@ -169,20 +192,58 @@ class ChatBot extends BotBase {
      */
     public function onServerEvent($event, $host) {
 
-        //! TODO
-
+        // skip event handling if the bot is not active
+        if ($this->model->active == 0) {
+            return;
+        }
+       
         Log::verbose(self::$TAG, "bot '" . $this->model->name . "' got event: " . $event->getType());
-        if (strcmp($event->getType(), "textmessage") === 0) {
-/*
-            $data = $event->getData();            
-            Log::verbose(self::$TAG, " got message from: " . print_r($host->whoami("client_unique_identifier"), true));
-            Log::verbose(self::$TAG, " got message from involer: " . print_r($event["invokeruid"], true));
-            $client = "" . $host->whoami("client_unique_identifier");
-            $invoker = "" . $event["invokeruid"];
-            if($client != $invoker) {
-                $host->serverGetSelected()->clientGetByUid($event["invokeruid"])->message("Pong!");
+
+        if (strcmp($event->getType(), "cliententerview") === 0) {
+            $data = $event->getData();
+            $clientid = $data["clid"];
+
+            // did the client directly entered bot's channel?
+            if ($this->isInChannel($clientid, $this->model->channelID)) {
+                $cnick = $data["client_nickname"];
+                $greet = "Hello " . $cnick . "!";
+                // enqueue a greeting for next update step
+                $this->replyQueue[] = ["targetId" => $clientid, "msg" => $greet];
             }
-*/
+            return;
+        }
+        else if (strcmp($event->getType(), "clientmoved") === 0) {
+            $data      = $event->getData();
+            $clientid  = (int)$data["clid"];
+            $channelid = (int)$data["ctid"];
+            // check if a new client was moved to bot's channel
+            if((strlen($this->model->greetingText) > 0) &&
+               ($this->model->channelID == $channelid) &&
+                $this->isInChannel($clientid, $this->model->channelID)) {
+
+                // unfortunately, the t3 server query sends this event twice, we have to deal with it
+                $this->enterChannelQueue[$clientid] = ["targetId" => $clientid, "msg" => $this->model->greetingText];
+                //Log::verbose(self::$TAG, "client entered my channel: " . $clientid);
+            }
+            return;
+        }
+        else if (strcmp($event->getType(), "textmessage") === 0) {
+            $data    = $event->getData();
+            $target  = (int)$data["target"];
+            $source  = (int)$data["invokerid"];
+            $me      = (int)$host->whoami()["client_id"];
+
+            Log::verbose(self::$TAG, "me: " . $me . ", source: " . $source . ", target: " . $target);
+
+            // consider echos!
+            if(($source !== $target) && ($source !== $me)) {
+                $text = $data["msg"];
+                $reply = $this->replyMessage($text);
+                if (!is_null($reply)) {
+                    // enqueue the reply for next update step
+                    $this->replyQueue[] = ["targetId" => $source, "msg" => $reply];
+                }
+            }
         }
     }
 
@@ -197,7 +258,97 @@ class ChatBot extends BotBase {
         if ($this->model->active == 0) {
             return;
         }
-        //! TODO we may want to drop a line after a while without any conversation
-        //Log::verbose(self::$TAG, "bot " . $this->getName() . " was updated");
+
+        if ($this->initialGreet === true) {
+            $this->initialGreet = false;
+            $this->sendMessage($this->model->channelID, null, $this->model->greetingText);
+        }
+
+        // this avoids 'clientmoved' event duplication
+        foreach($this->enterChannelQueue as $q) {
+            $this->replyQueue[] = $q;
+        }
+        $this->enterChannelQueue = [];
+
+        foreach($this->replyQueue as $q) {
+            $targetId = $q["targetId"];
+            $reply    = $q["msg"];
+            $this->sendMessage($this->model->channelID, [$targetId], $reply);
+        }
+        $this->replyQueue = [];
+    }
+
+    /**
+     * Check if a client is in channel with given ID.
+     * 
+     * @param int $clientID     Client ID
+     * @param int $channelID    Channel ID
+     * @return boolean          True if the client is in given channel, otherwise false.
+     */
+    protected function isInChannel($clientID, $channelID) {
+        if (!$channelID) {
+            return false;
+        }
+        $channel = $this->ts3Server->channelGetById($channelID);
+        $clients = $channel->clientList();
+        foreach($clients as $client) {
+            if ($client["clid"] == $clientID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Send a message to clients in a channel.
+     * 
+     * @param int $channelID        Channel ID
+     * @param mixed $clientIDs      Client ID list of recipients in channel, or null for all clients in channel.
+     * @param string $msg           Message to send
+     */
+    protected function sendMessage($channelID, $clientIDs, $msg) {
+
+        $channel = $this->ts3Server->channelGetById($channelID);
+        $clients = $channel->clientList();
+        $text = "[" . $this->model->nickName . "]: " . $msg;
+        foreach($clients as $client) {
+            if (is_null($clientIDs) || in_array($client["clid"], $clientIDs)) {
+                $client->message($text);
+            }
+        }
+    }
+
+    /**
+     * Check if the given haystack string contains the needle string.
+     * 
+     * @param string $haystack  The source string
+     * @param string $needle    The string to search for
+     * @return boolean          True if the haystack string contrins the given needle, otherwise false.
+     */
+    protected function strContains($haystack, $needle) {
+        return (strpos($haystack, $needle) !== false);
+    }
+
+    /**
+     * Reply to incoming message.
+     * 
+     * @param string $msg       Incoming message
+     * @return string           Reply text, or null if there is no reply to given message.
+     */
+    protected function replyMessage($msg) {
+        // limit the text length
+        $STR_MAX_LEN = 256;
+        $text = strtolower((strlen($msg) > $STR_MAX_LEN) ? substr($msg, 0, $STR_MAX_LEN) : $msg);
+        
+        $reply = null;
+        if ($this->strContains($text, "hi") || $this->strContains($text, "hello")) {
+            $reply = "Hi my friend. I am a chat bot, tell me something and I try to sound smart.";
+        }
+        else if ($this->strContains($text, "how") &&
+                 $this->strContains($text, "are") &&
+                 $this->strContains($text, "you")) {
+            $reply = "I am well, thank you. How are you?";
+        }
+        return $reply;
     }
 }

@@ -183,7 +183,7 @@ class GreetingBot extends BotBase {
 
             try {
                 // get the client
-                $client = $this->ts3Server->clientGetById($clid);
+                $client = $host->serverGetSelected()->clientGetById($clid);
                 // assemble the final greeting
                 $text = str_replace("<nick>", $clnick, $this->model->greetingText);
                 // send the text to the client

@@ -144,7 +144,7 @@ abstract class DBObject {
 
     /**
      * Retrieve the object fields from database given its ID. If successful then
-     * the object fields are store and can be accessed by method 'getFields' or by
+     * the object fields are stored and can be accessed by method 'getFields' or by
      * their names as follows: $this->fieldname
      * 
      * @param int $id       Object ID
@@ -153,7 +153,6 @@ abstract class DBObject {
     public function loadObject($id) {
         $objects = DB::getObjects($this->getTableName(), ["id" => $id]);
         if (count($objects) != 1) {
-            $this->objectFields = [];
             return false;
         }
         $this->objectFields = $objects[0];
@@ -242,6 +241,7 @@ abstract class DBObject {
         }
         return $nums;
     }
+
     /**
      * Given an array of numbers return a string containing the numbers
      * by comma separation.
