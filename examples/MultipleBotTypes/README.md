@@ -27,9 +27,9 @@ As in greeting bot example, this example also contains HTML and Javascript files
 - Play with bots' configuration, the changes are immediately reflected in the bot while the bot server is running (see the console output of the bot server).
 
 # Special Thanks
-We want to thank the team behind [TeamSpeak3 PHP Framework] for their great work. Furthermore, we thank [Painicon] for the images we have used for the web pages in this example. Last but not least, we thank [jQuery] and [jQuery UI] which gave the web pages a good look&feel.
+We want to thank the team behind [TeamSpeak3 PHP Framework] for their great work. Furthermore, we thank [Plainicon] for the images we have used for the web pages in this example. Last but not least, we thank [jQuery] and [jQuery UI] which gave the web pages a good look&feel.
 
 [TeamSpeak3 PHP Framework]: https://github.com/planetteamspeak/ts3phpframework
-[Painicon]: http://plainicon.com
+[Plainicon]: http://plainicon.com
 [jQuery]: http://www.jquery.com
 [jQuery UI]: http://www.jqueryui.com

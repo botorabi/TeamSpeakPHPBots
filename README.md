@@ -27,17 +27,17 @@ The framework provides the following **features**:
 
 See the accompanying **examples** directory which demonstrates how to use this framework.
 
-**Here are a few screenshots showing the web interface.**
-
-![](https://cloud.githubusercontent.com/assets/11502867/17465071/546ff488-5ced-11e6-982d-58f1acf15195.png)
-
-![](https://cloud.githubusercontent.com/assets/11502867/17465072/57a1a976-5ced-11e6-95cc-e1775af7107d.png)
-
-![](https://cloud.githubusercontent.com/assets/11502867/17465073/59a1bc98-5ced-11e6-984b-28220f2bf026.png)
-
-![](https://cloud.githubusercontent.com/assets/11502867/17465074/5b508272-5ced-11e6-8aaa-37bff4a68321.png)
-
-![](https://cloud.githubusercontent.com/assets/11502867/17465075/5cda687e-5ced-11e6-8dfb-27a843d5bd51.png)
+**Here are a few screenshots showing the web interface.** 
+ 
+![](https://cloud.githubusercontent.com/assets/11502867/17465071/546ff488-5ced-11e6-982d-58f1acf15195.png) 
+ 
+![](https://cloud.githubusercontent.com/assets/11502867/17465072/57a1a976-5ced-11e6-95cc-e1775af7107d.png) 
+ 
+![](https://cloud.githubusercontent.com/assets/11502867/17465073/59a1bc98-5ced-11e6-984b-28220f2bf026.png) 
+ 
+![](https://cloud.githubusercontent.com/assets/11502867/17465074/5b508272-5ced-11e6-8aaa-37bff4a68321.png) 
+ 
+![](https://cloud.githubusercontent.com/assets/11502867/17465075/5cda687e-5ced-11e6-8dfb-27a843d5bd51.png) 
 
 [TeamSpeak3 PHP Framework]: https://github.com/planetteamspeak/ts3phpframework
 
