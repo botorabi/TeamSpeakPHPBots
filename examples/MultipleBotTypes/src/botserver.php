@@ -301,7 +301,7 @@ class App {
      */
     public static function onTimeout($seconds, TeamSpeak3_Adapter_ServerQuery $adapter) {
         if($adapter->getQueryLastTimestamp() < time()-300) {
-          Log::debug(self::$TAG, "sending keep-alive command");
+          //Log::debug(self::$TAG, "sending keep-alive command");
           $adapter->request("clientupdate");
         }
         self::$theApp->update();
