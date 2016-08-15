@@ -188,11 +188,13 @@ class PageLoader {
         }
                 
         // fall back to the default controller location
-        $fullpath = getcwd() . DIRECTORY_SEPARATOR . 
-                    Config::getWebInterface("libSrc") . DIRECTORY_SEPARATOR .
+        $fullpath = Config::getWebInterface("libSrc") . DIRECTORY_SEPARATOR .
                     $this->defaultControllerLocation . DIRECTORY_SEPARATOR .
                     $className . ".php";
-        
+
+        if ($fullpath[0] !== DIRECTORY_SEPARATOR) {
+            $fullpath = getcwd() . DIRECTORY_SEPARATOR . $fullpath;
+        }
         $fullpath = str_replace("\\", DIRECTORY_SEPARATOR, $fullpath);
         //Log::verbose(self::$TAG, "class: " . $className . ", fullpath: " . $fullpath);
 
