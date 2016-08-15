@@ -51,7 +51,7 @@ abstract class Auth {
     /**
 	 * @var int Session recreation time
 	 */
-    private static $SESSION_SID_UPDATE_TIME = 10 * 60;
+    private static $SESSION_SID_UPDATE_TIME = 600;
 
 
     /**
