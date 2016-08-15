@@ -14,7 +14,7 @@ use com\tsphpbots\web\controller\UserAdmin;
  * UserAdministration Page controller
  * 
  * This controller provides a REST interface for user administration such as
- * create, update, delete, listing, and user details. In addition it supportes
+ * create, update, delete, listing, and user details. In addition it supports
  * an HTML page template for managing users.
  *
  * @created:  3rd July 2016
