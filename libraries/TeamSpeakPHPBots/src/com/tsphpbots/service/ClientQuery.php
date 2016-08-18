@@ -160,4 +160,16 @@ class ClientQuery {
     public function botDelete($botType, $id) {
         return $this->getServiceResponse("botdelete " . $botType . " " . $id);
     }
+    
+    /**
+     * Send a message to the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     * @param string $text          Message text
+     * @return string               The bot update attempt's result if successful, otherwise null.
+     */
+    public function botMessage($botType, $id, $text) {
+        return $this->getServiceResponse("botmsg " . $botType . " " . $id . " " . $text);
+    }
 }

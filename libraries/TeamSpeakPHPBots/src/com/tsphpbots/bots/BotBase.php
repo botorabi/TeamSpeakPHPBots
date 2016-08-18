@@ -111,4 +111,13 @@ abstract class BotBase {
      * Override it in a derived class if it is needed.
      */
     public function onConfigUpdate() {}
+
+    /**
+     * Let the bot know about a new message arrived from remote. This can be used
+     * for communicating bot specific remote commands received by ServerQuery.
+     * Override it in a derived class if it is needed.
+     * 
+     * @param string $text  Message text, it should not contain any blanks!
+     */
+    public function onReceivedMessage($text) {}
 }

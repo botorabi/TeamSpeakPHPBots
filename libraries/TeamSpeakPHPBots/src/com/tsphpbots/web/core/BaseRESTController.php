@@ -85,12 +85,8 @@ abstract class BaseRESTController extends BaseController {
      *                       Note that some commands need further parameters.
      */
     public function handleRestRequest($params) {
-
         if (isset($params["list"])) {
             $this->cmdList();
-        }
-        else if (isset($params["id"])) {
-            $this->cmdDetails($params["id"]);
         }
         else if (isset($params["create"])) {
             $this->cmdCreate($params);
@@ -100,6 +96,9 @@ abstract class BaseRESTController extends BaseController {
         }
         else if (isset($params["delete"])) {
             $this->cmdDelete($params);
+        }
+        else if (isset($params["id"])) {
+            $this->cmdDetails($params["id"]);
         }
         else {
             return false;
@@ -205,7 +204,6 @@ abstract class BaseRESTController extends BaseController {
      * @param array $params   Request parameters containing the object configuration
      */
     protected function cmdCreate($params) {
-
         $obj = $this->createModel();
         $this->setObjectDefaultParameters($obj, $params);
         $id = $obj->create();

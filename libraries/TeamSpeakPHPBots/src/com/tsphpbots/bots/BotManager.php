@@ -295,4 +295,23 @@ class BotManager {
         }
         return false;
     }
+
+    /**
+     * Notify about a message for the bot.
+     * 
+     * @param string $botType   The bot type
+     * @param int $botId        The bot ID
+     * @param string $text      Message text
+     * @return boolean          Return true if the bot was found and the message delivered successfully, otherwise false.
+     */
+    public function notifyBotMessage($botType, $botId, $text) {
+        Log::verbose(self::$TAG, "notify bot about a message: " . $botType . ", " . $botId);
+        $bot = $this->findBot($botType, $botId);
+        if ($bot) {
+            $bot->onReceivedMessage($text);
+            return true;
+        }
+        return false;
+    }
+
 }
