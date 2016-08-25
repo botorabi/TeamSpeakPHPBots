@@ -315,7 +315,8 @@ class TeamSpeak3
     $uri = new TeamSpeak3_Helper_Uri($uri);
 
     $adapter = self::getAdapterName($uri->getScheme());
-    $options = array("host" => $uri->getHost(), "port" => $uri->getPort(), "timeout" => (int) $uri->getQueryVar("timeout", 10), "blocking" => (int) $uri->getQueryVar("blocking", 1));
+    $options = array("host" => $uri->getHost(), "port" => $uri->getPort(), "timeout" => (int) $uri->getQueryVar("timeout", 10),
+                     "readtimeout" => (int) $uri->getQueryVar("readtimeout", 500), "blocking" => (int) $uri->getQueryVar("blocking", 1));
 
     self::loadClass($adapter);
 

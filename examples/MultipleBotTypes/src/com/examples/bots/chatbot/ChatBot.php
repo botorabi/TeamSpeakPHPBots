@@ -49,13 +49,24 @@ class ChatBot extends BotBase {
     
     /**
      * Construct a chat bot.
-     * 
-     * @param  $server      TS3 server object
-     * @throws Exception    Throws exception if the given server is invalid.
      */
-    public function __construct($server) {
-        BotBase::__construct($server);
+    public function __construct() {
+        BotBase::__construct();
         $this->model = new ChatBotModel;
+    }
+
+    /**
+     * This is a creation policy. This bot needs an own connection.
+     * 
+     * @implements base class method
+     * 
+     * @param string $nickName  The nick name for the connection.
+     * @return boolean          Return true if an own server connection should be created for the bot.
+     */
+    public function needsOwnServerConnection(&$nickName) {
+        // replace any blanks in the name
+        $nickName = $this->model->nickName;
+        return true;
     }
 
     /**
@@ -75,30 +86,38 @@ class ChatBot extends BotBase {
      * 
      * @implements base class method
      * 
-     * @param $server       TS3 Server object
      * @return              New instance of the bot.
      */
-    public static function create($server) {
-        return new ChatBot($server);
+    public static function create() {
+        return new ChatBot();
     }
 
     /**
-     * Load the bot from database and check its data.
+     * Load the bot from database.
      * 
      * @implements base class method
      * 
-     * @param int $botId    Bot ID (database table row ID)
-     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     * @param int $id       Bot ID (database table row ID)
+     * @return boolean      Return false if the object could not be loaded, otherwise true.
      */
-    public function initialize($botId) {
-
-        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $botId);
-
-        if ($this->model->loadObject($botId) === false) {
-            Log::warning(self::$TAG, "could not load bot from database: id " . $botId);
+    public function loadData($id) {
+        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $id);
+        if ($this->model->loadObject($id) === false) {
+            Log::warning(self::$TAG, "could not load bot from database: id " . $id);
             return false;
         }
+        Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
+        return true;
+    }
 
+    /**
+     * Initialize the bo.
+     * 
+     * @implements base class method
+     * 
+     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     */
+    public function initialize() {
         $this->model->greetingText = trim($this->model->greetingText);
         $this->model->nickName = trim($this->model->nickName);
 
@@ -113,6 +132,16 @@ class ChatBot extends BotBase {
         // check if there is a geeting text
         if (strlen($this->model->greetingText) > 0) {
             $this->initialGreet = true;
+        }
+
+        try {
+            $me = $this->ts3Server->whoamiGet("client_id");
+            $this->ts3Server->clientMove($me, $this->model->channelID);
+            Log::debug(self::$TAG, "bot moved successfully to channel: " . $this->model->channelID);
+        }
+        catch(\TeamSpeak3_Adapter_ServerQuery_Exception $e) {
+            Log::warning(self::$TAG, "cannot move to channel: " . $this->model->channelID);
+            Log::warning(self::$TAG, "  reason: " . $e->getMessage());
         }
 
         return true;
@@ -229,9 +258,13 @@ class ChatBot extends BotBase {
         }
         else if (strcmp($event->getType(), "textmessage") === 0) {
             $data    = $event->getData();
-            $target  = (int)$data["target"];
+            $target  = 0;
             $source  = (int)$data["invokerid"];
             $me      = (int)$host->whoami()["client_id"];
+
+            if (isset($data["target"])) {
+                $target = (int)$data["target"];
+            }
 
             Log::verbose(self::$TAG, "me: " . $me . ", source: " . $source . ", target: " . $target);
 
@@ -253,7 +286,6 @@ class ChatBot extends BotBase {
      * @implements base class method
      */
     public function update() {
-
         // skip updating if the bot is not active
         if ($this->model->active == 0) {
             return;
@@ -261,7 +293,8 @@ class ChatBot extends BotBase {
 
         if ($this->initialGreet === true) {
             $this->initialGreet = false;
-            $this->sendMessage($this->model->channelID, null, $this->model->greetingText);
+            $text = str_replace("<nick>", "", $this->model->greetingText);
+            $this->sendMessage($this->model->channelID, null, $text);
         }
 
         // this avoids 'clientmoved' event duplication

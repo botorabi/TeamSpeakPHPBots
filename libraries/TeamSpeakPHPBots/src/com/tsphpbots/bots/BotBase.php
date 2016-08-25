@@ -12,7 +12,7 @@ namespace com\tsphpbots\bots;
 /**
  * Base class for all kinds of bots
  * 
- * @package   com\tsphpbots\web\controller
+ * @package   com\tsphpbots\bots
  * @created   23th July 2016
  * @author    Botorabi
  */
@@ -25,16 +25,42 @@ abstract class BotBase {
 
     /**
      * Construct the bot manager.
-     * 
-     * @param  Object $server   TS3 server object
-     * @throws Exception        Throws exception if the given server is invalid.
      */
-    public function __construct($server) {
-      
-        if ($server == null) {
-            throw new \Exception("Invalid TS3 server object!");
-        }
+    public function __construct() {}
+
+    /**
+     * Set the TS3 server. This is usually set during the bot creation (bot manager's job).
+     * 
+     * @param Object $server
+     */
+    public function setServer($server) {
         $this->ts3Server = $server;
+    }
+
+    /**
+     * Get the stream of server connection. Some bots may need own streams, so the 
+     * bot manager uses this method in order to properly distribute connection events etc.
+     * 
+     * @return Object   Stream object of bot's server connection. Returns null if no server is set.
+     */
+    public function getServerStream() {
+        if (is_null($this->ts3Server)) {
+            return null;
+        }
+        // yeah looks weird, huh?
+        return $this->ts3Server->getParent()->getParent()->getTransport()->getStream();
+    }
+
+    /**
+     * This is a creation policy. A bot can override this method in order to request for an own TS3 server connection.
+     * The default is that bots share the same server connection.
+     * 
+     * @param string $nickName  If an own server connection is needed then the nick name can be set which is used for the connection.
+     *                           A default nickname should be provided by caller of this method (usually the bot manager).
+     * @return boolean          Return true if an own server connection should be created for the bot.
+     */
+    public function needsOwnServerConnection(&$nickName) {
+        return false;
     }
 
     /**
@@ -48,19 +74,26 @@ abstract class BotBase {
     /**
      * Create a new bot instance.
      * 
-     * @param Object $server TS3 Server object
      * @return Object        New instance of the bot.
      */
-    abstract static public function create($server);
+    abstract static public function create();
 
     /**
-     * Initialize the bot. Usually the bot will load its data from database using the given bot ID.
+     * Load the bot from database.
+     * 
+     * @param int $id       Bot ID (database table row ID)
+     * @return boolean      Return false if the object could not be loaded, otherwise true.
+     */
+    abstract public function loadData($id);
+
+    /**
+     * Initialize the bot. Usually the bot will have loaded its data from database before.
+     * The server connection should also be already in place when this method is called.
      * This method is used also by the bot manager for creating bots.
      * 
-     * @param int $botId    The database ID
      * @return boolean      Return true if the bot was initialized successfully, otherwise false.
      */
-    abstract public function initialize($botId);
+    abstract public function initialize();
 
     /**
      * Get the bot type.
@@ -96,6 +129,13 @@ abstract class BotBase {
      * Update the bot.
      */
     abstract public function update();
+
+    /**
+     * Call this in order to let the bot know about a shutdown.
+     * A concrete bot class can override this method in order to do last chance house-keeping
+     * before the bot is shut down.
+     */
+    public function onShutdown() {}
 
     /**
      * This method is called whenever a server event was received.
