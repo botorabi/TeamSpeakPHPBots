@@ -27,7 +27,7 @@ abstract class Configuration {
         "password"      => "exffRAo3",          // TODO put your TS3 user password here
         "hostPort"      => 10011,
         "vServerPort"   => 9987,
-        "pollInterval"  => 2,                   // intervall of bot control steps in seconds
+        "pollInterval"  => 1,                   // intervall of bot control steps in seconds
         "nickName"      => "TS3 PHP Bot"        // this is the name displayed in TS3 clients
     ];
 

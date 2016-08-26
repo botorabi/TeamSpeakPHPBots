@@ -148,10 +148,11 @@ class TeamSpeak3_Adapter_ServerQuery extends TeamSpeak3_Adapter_Abstract
   /**
    * Waits for the server to send a notification message and returns the result.
    *
+   * @param  boolean $waitForEver  Pass false in order to wait up to a timeout.
    * @throws TeamSpeak3_Adapter_Exception
-   * @return TeamSpeak3_Adapter_ServerQuery_Event
+   * @return TeamSpeak3_Adapter_ServerQuery_Event Arrived event or null if $waitForEver was false and timeout occured.
    */
-  public function wait()
+  public function wait($waitForEver = true)
   {
     if($this->getTransport()->getConfig("blocking"))
     {
@@ -159,7 +160,11 @@ class TeamSpeak3_Adapter_ServerQuery extends TeamSpeak3_Adapter_Abstract
     }
 
     do {
-      $evt = $this->getTransport()->readLine();
+      $evt = $this->getTransport()->readLine("\n", $waitForEver);
+      if (is_null($evt))
+      {
+        return null;
+      }
     } while($evt instanceof TeamSpeak3_Helper_String && !$evt->section(TeamSpeak3::SEPARATOR_CELL)->startsWith(TeamSpeak3::EVENT));
 
     return new TeamSpeak3_Adapter_ServerQuery_Event($evt, $this->getHost());

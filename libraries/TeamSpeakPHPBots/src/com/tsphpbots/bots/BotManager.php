@@ -9,11 +9,14 @@
 
 namespace com\tsphpbots\bots;
 use com\tsphpbots\utils\Log;
+use com\tsphpbots\config\Config;
+use com\tsphpbots\teamspeak\TSServerConnections;
+
 
 /**
  * This class manages the creation and the lifecycle of bots.
  * 
- * @package   com\tsphpbots\web\controller
+ * @package   com\tsphpbots\bots
  * @created   23th July 2016
  * @author    Botorabi
  */
@@ -35,22 +38,82 @@ class BotManager {
     protected $bots = [];
 
     /**
-     * @var Object  TS3 server
+     * @var Object  TS3 server connection manager
      */
-    protected $ts3Server = null;
+    protected $ts3Connection = null;
+
+    /**
+     * @var Object  TS3 server connections, table consisting of stream/serverObject pairs.
+     */
+    protected $ts3ServerConnections = [];
+
+    /**
+     * @var Object TS3 default server connection
+     */
+    protected $ts3DefaultConnection = null;
+
+    /**
+     * @var int  Used for creating unique nicknames for new connections
+     */
+    protected $numConnections = 0;
+
+    /**
+     * @var array All nicknames already used for server connections.
+     */
+    protected $usedNickNames = [];
 
     /**
      * Construct the bot manager.
-     * 
-     * @param  Object $server   TS3 server object
-     * @throws Exception        Throws exception if the given server is invalid.
      */
-    public function __construct($server) {
+    public function __construct() {
+        $this->ts3Connection = new TSServerConnections();
+    }
 
-        if ($server == null) {
-            throw new \Exception("Invalid TS3 server object!");
+    /**
+     * Initialize the bot manager.
+     * 
+     * @return boolean      Return true if bot manager was successfully initialized, otherwise false.
+     */
+    public function initialize() {
+        // create a default server connection
+        $this->ts3DefaultConnection = $this->createServerConnection(Config::getTS3ServerQuery("nickName"));
+        if (is_null($this->ts3DefaultConnection)) {
+            Log::error(self::$TAG, "could not initialize bot manager, no teamspeak server connection!");
+            return false;
         }
-        $this->ts3Server = $server;
+        return true;
+    }
+
+    /**
+     * Update the application.
+     * 
+     * @param $stream  The server connection stream
+     */
+    public function update() {
+        foreach($this->bots as $bot) {
+            //Log::debug(self::$TAG, "update bot: " . $stream . ", bot type: " . $bot->getType());
+            $bot->update();
+        }
+        $this->ts3Connection->update();
+    }
+
+    /**
+     * Shutdown the bot manager.
+     */
+    public function shutdown() {
+        Log::debug(self::$TAG, "shutting down the bot manager");
+
+        foreach($this->bots as $bot) {
+            $bot->onShutdown();
+        }
+
+        $this->bots = [];
+        $this->ts3Connection->shutdown();
+        $this->ts3Connection = null;
+        $this->ts3ServerConnections = [];
+        $this->ts3DefaultConnection = null;
+        $this->numConnections = 0;
+        $this->usedNickNames = [];
     }
 
     /**
@@ -64,6 +127,28 @@ class BotManager {
     public function registerBotClass($botClass) {
         $cleanpath = str_replace("/", "\\", $botClass);
         $this->botClasses[] = $cleanpath;
+    }
+
+    /**
+     * Load all bots of registered bot classes from database.
+     */
+    public function loadBots() {
+        foreach($this->botClasses as $botclass) {
+            $ids = $botclass::getAllIDs();
+            if (is_null($ids)) {
+                Log::warning(self::$TAG, "no database table found for bot class: " . $botclass);
+                continue;
+            }
+            $loadresult = false;
+            foreach($ids as $id) {
+                $newbot = $this->createBot($botclass, $id, $loadresult);
+                if (is_null($newbot)) {
+                    Log::warning(self::$TAG, " could not create bot");
+                    return false;
+                }
+                $this->addBot($newbot);
+            }
+        }
     }
 
     /**
@@ -139,37 +224,6 @@ class BotManager {
     }
 
     /**
-     * Periodically call this update method.
-     */
-    public function update() {
-        foreach($this->bots as $bot) {
-            $bot->update();
-        }
-    }
-
-    /**
-     * Load all bots of registered bot classes from database.
-     */
-    public function loadBots() {
-        foreach($this->botClasses as $botclass) {
-            $ids = $botclass::getAllIDs();
-            if (is_null($ids)) {
-                Log::warning(self::$TAG, "no database table found for bot class: " . $botclass);
-                continue;
-            }
-            $loadresult = false;
-            foreach($ids as $id) {
-                $newbot = $this->createBot($botclass, $id, $loadresult);
-                if (is_null($newbot)) {
-                    Log::warning(self::$TAG, " could not create bot");
-                    return false;
-                }
-                $this->addBot($newbot);
-            }
-        }
-    }
-
-    /**
      * Create and load a bot given its class and ID.
      * 
      * @param string $botClass      The bot class. It must be a full qualified name of a bot class ready for instantiation.
@@ -178,9 +232,21 @@ class BotManager {
      * @return Object               The new bot, or null if it could not be created
      */
     public function createBot($botClass, $botId, &$loadResult) {
-
         try {
-            $bot = $botClass::create($this->ts3Server);
+            $bot = $botClass::create();
+            $bot->loadData($botId);
+            Log::debug(self::$TAG, "creating bot '" . $bot->getName() . "' of type " . $bot->getType());
+            // check if the bot needs an own ts3 server connection
+            $nickname = Config::getTS3ServerQuery("nickName");
+            if ($bot->needsOwnServerConnection($nickname)) {
+                Log::debug(self::$TAG, "  bot needs an own ts3 server connection, using nickname '" . $nickname . "'");
+                $nickname = $this->createUniqueNickName($nickname);
+                $srv = $this->createServerConnection(trim(str_replace(" ", "%20", $nickname))); // no blanks are allowed in nick name
+            }
+            else {
+                $srv = $this->ts3DefaultConnection;
+            }
+            $bot->setServer($srv);
         }
         catch (Exception $e) {
             Log::warning(self::$TAG, "could not create instance of bot class: " . $botClass);
@@ -189,22 +255,77 @@ class BotManager {
             $loadResult = false;
             return null;
         }
-        $loadResult = $bot->initialize($botId);
+        $loadResult = $bot->initialize();
         return $bot;
     }
 
     /**
-     * Call this method whenever a server event was received.
+     * Create a TS3 server connection with given nickname.
+     * 
+     * @param string $nickName  Nick name used for the connection
+     * @return Object           TS3 server object, or null if something went wrong
+     */
+    protected function createServerConnection($nickName) {
+        $server = $this->ts3Connection->createConnection($nickName, array($this, "onNotifyServerEvent"));
+        if (!is_null($server)) {
+            $stream = $server->getParent()->getParent()->getTransport()->getStream();
+            $this->ts3ServerConnections[] = ["stream" => $stream, "server" => $server];
+            $this->numConnections++;
+        }
+        Log::debug(self::$TAG, "total count of server connections: " . $this->numConnections);
+        return $server;
+    }
+
+    /**
+     * Create a unique connection nick name given a wished name. If the name is
+     * already in use then a postfix will be appended.
+     * 
+     * @param string $nickName  The wished nick name
+     * @return string           Return a unique nick name
+     */
+    protected function createUniqueNickName($nickName) {
+        $postfix = 0;
+        while(isset($this->usedNickNames[$nickName])) {
+            $nickName .= $postfix++;
+        }
+        $this->usedNickNames[$nickName] = $nickName;
+        return $nickName;
+    }
+
+    /**
+     * Given a connection stream return the corresponding server.
+     * 
+     * @param Object $stream    Connection stream
+     * @return array            The TS3 server object, null if no entry exists with that stream.
+     */
+    protected function getServerByStream($stream) {
+        foreach($this->ts3ServerConnections as $srv) {
+            if ($srv["stream"] === $stream) {
+                return $srv["server"];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Call this method whenever a server event was received. This is called by connection manager.
      * 
      * @param Object $event        Event received from ts3 server
      * @param Object $host         Server host
+     * @param Object $stream       The server connection stream.
      */
-    public function notifyServerEvent($event, $host) {
+    public function onNotifyServerEvent($event, $host, $stream) {
 
         $TYPE_CHANNEL = "channel";
         $TYPE_CLIENT  = "client";
 
         $type = $event->getType();
+
+        $ts3server = $this->getServerByStream($stream);
+        if (is_null($ts3server)) {
+            Log::debug(self::$TAG, "ignoring event of an unknown stream: " . $stream);
+            return;
+        }
 
         //Log::debug(self::$TAG, "ts3 server event received, type: " . $type . ", host: " . $host);
 
@@ -213,18 +334,21 @@ class BotManager {
             strcmp(substr($type, 0, strlen($TYPE_CHANNEL)), $TYPE_CHANNEL) === 0) {
 
             //Log::debug(self::$TAG, " updating the channel list");
-            $this->ts3Server->channelListReset();
+            $ts3server->channelListReset();
         }
         if (strlen($type) >= strlen($TYPE_CLIENT) &&
             strcmp(substr($type, 0, strlen($TYPE_CLIENT)), $TYPE_CLIENT) === 0) {
 
             //Log::debug(self::$TAG, " updating the client list");
-            $this->ts3Server->clientListReset();
+            $ts3server->clientListReset();
         }
 
         // notify now all bots
         foreach($this->bots as $bot) {
-            $bot->onServerEvent($event, $host);
+            if ($bot->getServerStream() === $stream) {
+                $bot->onServerEvent($event, $host);
+                break;
+            }
         }
     }
 
@@ -295,4 +419,23 @@ class BotManager {
         }
         return false;
     }
+
+    /**
+     * Notify about a message for the bot.
+     * 
+     * @param string $botType   The bot type
+     * @param int $botId        The bot ID
+     * @param string $text      Message text
+     * @return boolean          Return true if the bot was found and the message delivered successfully, otherwise false.
+     */
+    public function notifyBotMessage($botType, $botId, $text) {
+        Log::verbose(self::$TAG, "notify bot about a message: " . $botType . ", " . $botId);
+        $bot = $this->findBot($botType, $botId);
+        if ($bot) {
+            $bot->onReceivedMessage($text);
+            return true;
+        }
+        return false;
+    }
+
 }
