@@ -140,18 +140,23 @@ class TSServerConnections {
          */
         if (($registrationFlags & self::$REG_FLAG_CHANNEL) !== 0) {
             $server->notifyRegister("channel");
+            Log::verbose(self::$TAG, " adding notify reg: channel");
         }
         if (($registrationFlags & self::$REG_FLAG_SERVER) !== 0) {
             $server->notifyRegister("server");
+            Log::verbose(self::$TAG, " adding notify reg: server");
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTSERVER) !== 0) {
             $server->notifyRegister("textserver");
+            Log::verbose(self::$TAG, " adding notify reg: textserver");
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTCHANNEL) !== 0) {
             $server->notifyRegister("textchannel");
+            Log::verbose(self::$TAG, " adding notify reg: textchannel");
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTPRIVATE) !== 0) {
             $server->notifyRegister("textprivate");
+            Log::verbose(self::$TAG, " adding notify reg: textprivate");
         }
 
         return $server;

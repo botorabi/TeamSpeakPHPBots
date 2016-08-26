@@ -327,7 +327,7 @@ class BotManager {
             return;
         }
 
-        //Log::debug(self::$TAG, "ts3 server event received, type: " . $type . ", host: " . $host);
+        Log::debug(self::$TAG, "ts3 server event received, type: " . $type . ", host: " . $host);
 
         // check if the event was something about channels
         if (strlen($type) >= strlen($TYPE_CHANNEL) &&
@@ -347,6 +347,7 @@ class BotManager {
         foreach($this->bots as $bot) {
             if ($bot->getServerStream() === $stream) {
                 $bot->onServerEvent($event, $host);
+                break;
             }
         }
     }
