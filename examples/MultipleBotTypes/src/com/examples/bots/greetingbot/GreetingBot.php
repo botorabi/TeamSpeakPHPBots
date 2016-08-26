@@ -153,7 +153,8 @@ class GreetingBot extends BotBase {
             Log::debug(self::$TAG, "reloading bot configuration, type: " . $this->getType() . ", name: " .
                                    $this->getName() . ", id: " . $this->getID());
 
-            $this->initialize($this->getID());
+            $this->loadData($this->getID());
+            $this->initialize();
         }
         else {
             Log::warning(self::$TAG, "the bot was not loaded before, cannot handle its config update!");
@@ -181,7 +182,7 @@ class GreetingBot extends BotBase {
             $clid = $data["clid"];
             $clnick = $data["client_nickname"];
 
-            Log::verbose(self::$TAG, "going to greet a new client: " . $clnick);
+            //Log::verbose(self::$TAG, "going to greet a new client: " . $clnick);
 
             try {
                 // get the client

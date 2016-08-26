@@ -2,6 +2,10 @@
 <script>
 	function initContent() {
 		$("#backbtnId").show();
+		setupUserList();
+	}
+
+	function setupUserList() {
 		REST.getUserList(function (res) {
 			if (res.result === "ok") {
 				if (res.allowcreation !== "0") {
@@ -30,6 +34,9 @@
 						default:
 							;
 					}
+					setTimeout(function() {
+						setupUserList();
+					}, 100);
 				});
 			}
 		});
@@ -42,15 +49,15 @@
 		var login = $("#newUserFormId :input[name='login']").val();
 		if (login.length < 4) {
 			showMessageDialog("Notice: Login", "The login name must have at least 4 characters!", "Ok", null);
-			return;			
+			return false;			
 		}
 		if (email.length < 1) {
 			showMessageDialog("Notice: E-Mail", "Please, enter your E-Mail address!", "Ok", null);
-			return;			
+			return false;			
 		}
 		if (name.length < 1) {
 			showMessageDialog("Notice: Name", "Please, enter your name!", "Ok", null);
-			return;			
+			return false;			
 		}
 		
 		fields.push({name : "name", value: name});
@@ -66,26 +73,26 @@
 			}
 			else {
 				showMessageDialog("Notice: Password", "The given password and its repetetion do not match!", "Ok", null);
-				return;
+				return false;
 			}
 		}
 		else {
 			showMessageDialog("Notice: Password", "A password must have at least 8 characters!", "Ok", null);
-			return;
+			return false;
 		}
 
 		REST.createUser(fields, function(res) {
+			setupUserList();
 			if (res.result === "ok") {
 				showMessageDialog("New User", "New user was successfully created.", "Ok",  function() {
-					location.reload();				
 				});
 			}
 			else {
 				showMessageDialog("New User", "New user could not be created!\nReason: " + res.reason, "Ok",  function() {
-					//
 				});
 			}
 		});
+		return true;
 	}
 
 	function processUserModify(id) {
@@ -111,14 +118,13 @@
 		}
 
 		REST.updateUser(id, fields, function(res) {
+			setupUserList();
 			if (res.result === "ok") {
 				showMessageDialog("User Update", "User data was successfully updated.", "Ok",  function() {
-					location.reload();
 				});
 			}
 			else {
 				showMessageDialog("User Update", "User data could not be updated!\nReason: " + res.reason, "Ok",  function() {
-					location.reload();				
 				});
 			}
 		});
@@ -145,13 +151,18 @@
 					$(this).dialog( "close" );
 				},
 				"Create": function(event) {
-					processUserCreate();
+					if (processUserCreate()) {
+						$(this).dialog( "close" );
+					}
 				}
 			}
 		});
+		dlg.find("form").trigger("reset");
 		dlg.find("form").on("submit", function(event) {
 			event.preventDefault();
-			processUserCreate();
+			if (processUserCreate()) {
+				dlg.dialog( "close" );
+			}
 		});
 		dlg.dialog("open");
 		dlg.dialog("moveToTop");
@@ -177,12 +188,14 @@
 							$(this).dialog( "close" );
 						},
 						"Apply": function(event) {
+							$(this).dialog( "close" );
 							processUserModify(res.data.id);
 						}
 					}
 				});
 				dlg.find("form").on("submit", function(event) {
 					event.preventDefault();
+					dlg.dialog( "close" );
 					processUserModify(res.data.id);
 				});
 				dlg.dialog("open");
@@ -199,9 +212,9 @@
 		"No", null,
 		"Yes", function() {
 			REST.deleteUser(id, function (res) {
+				setupUserList();
 				if (res.result === "ok") {
 					showMessageDialog("Delete User", "User was successfully deleted.", "Ok", function() {
-						location.reload();				
 					});
 				}
 				else {
@@ -223,12 +236,12 @@
 		});
 	}
 	function setRole(id, role) {
-		REST.setRole(id, role, function (res) {
+		REST.setUserRole(id, role, function (res) {
+			setupUserList();
 			if (res.result === "ok") {
 			}
 			else {
 				showMessageDialog("User Role", "User's role could not be changed!\nReason: " + res.reason, "Ok", function() {
-					location.reload();
 				});
 			}
 		});
