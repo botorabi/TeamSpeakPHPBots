@@ -193,7 +193,7 @@ function initREST(logger) {
      * @param roleFlag  One of role flags.
      * @param callback  Callback function used when the results are ready.
      */
-    REST.setRole = function(id, roleFlag, callback) {
+    REST.setUserRole = function(id, roleFlag, callback) {
         var reqdata = [];
         reqdata.push({name: "update", value : id});
         reqdata.push({name: "roles", value: roleFlag});
@@ -272,4 +272,17 @@ function initREST(logger) {
     REST.botServiceDeleteBot = function(botType, id, callback) {
         requestJSON("?page=BotServer&delete=" + id + "&botType=" + botType, null, callback);        
     };
+
+    /**
+     * Send a message to the bot.
+     * 
+     * @param botType   Bot type
+     * @param id        Bot ID
+     * @param msg       Message
+     * @param callback  Callback function used when the results are ready.
+     */
+    REST.botServiceSendMessage = function(botType, id, msg, callback) {
+        requestJSON("?page=BotServer&msg=" + id + "&botType=" + botType + "&text=" + msg, null, callback);        
+    };
+
 }

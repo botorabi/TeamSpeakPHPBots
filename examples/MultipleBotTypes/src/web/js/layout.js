@@ -20,7 +20,7 @@ function initLAYOUT(logger) {
     /**
      * Put the bot list into given table.
      * 
-     * @param botCtrlPage           Bot type
+     * @param botCtrlPage       Bot control page
      * @param tableID           ID of table containig the bots
      * @param bots              Bot configuration array.
      * @param onClickHandler    Handler for onClick events
@@ -31,9 +31,15 @@ function initLAYOUT(logger) {
         if (!elem)
             return;
 
-        // are there any eventy at all?
+        // are there any bots at all?
         if (!bots || !bots.length)
             return;
+
+        // delete any existing rows first
+        var HEAD_ROWS = 2;
+        while (elem.rows.length > HEAD_ROWS) {
+            elem.deleteRow(elem.rows.length - 1);
+        }
 
         renderBots(elem, botCtrlPage, bots, onClickHandler);
     };
@@ -51,9 +57,15 @@ function initLAYOUT(logger) {
         if (!elem)
             return;
 
-        // are there any eventy at all?
+        // are there any users at all?
         if (!users || !users.length)
             return;
+
+        // delete any existing rows first
+        var HEAD_ROWS = 2;
+        while (elem.rows.length > HEAD_ROWS) {
+            elem.deleteRow(elem.rows.length - 1);
+        }
 
         renderUsers(elem, users, onClickHandler);
     };
@@ -81,6 +93,15 @@ function initLAYOUT(logger) {
     };
 
     //! Private functions
+
+    function formatTimeDate(date) {
+        var datestr = date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+        var minutes = date.getMinutes();
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        datestr += " - " + date.getHours() + ":" + minutes;
+        return datestr;
+    }
+
     function renderBots(table, botCtrlPage, bots, onClickHandler) {
 
         if (table.tBodies.length === 0)
@@ -116,7 +137,7 @@ function initLAYOUT(logger) {
             td.setAttribute("class", "active");
             tr.appendChild(td);
             chbox = document.createElement("input");
-            chbox.id = "chboxactiveId";
+            chbox.id = "chboxactiveId" + bots[i].id;
             chbox.type = "checkbox";
             chbox.botId = bots[i].id;
             chbox.botCtrlPage = botCtrlPage;
@@ -152,14 +173,6 @@ function initLAYOUT(logger) {
             img.onclick = function() { if (onClickHandler) onClickHandler('delete', this.botCtrlPage, this.botType, this.botId); };
             td.appendChild(img);
         }
-    }
-
-    function formatTimeDate(date) {
-        var datestr = date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
-        var minutes = date.getMinutes();
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        datestr += " - " + date.getHours() + ":" + minutes;
-        return datestr;
     }
 
     function renderUsers(table, users, onClickHandler) {
@@ -205,7 +218,7 @@ function initLAYOUT(logger) {
             td.setAttribute("class", "status");
             tr.appendChild(td);
             label = document.createElement("label");
-            label.setAttribute("for", "chboxactiveId");
+            label.setAttribute("for", "chboxactiveId" + users[i].id);
             label.innerHTML = "aktiv: ";
             td.appendChild(label);
             chbox = document.createElement("input");

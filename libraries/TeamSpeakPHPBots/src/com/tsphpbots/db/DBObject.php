@@ -201,7 +201,7 @@ abstract class DBObject {
     }
 
     /**
-     * Store back the object changed to databank. Use $fields for updating only given
+     * Store back the object changes to databank. Use $fields for updating only given
      * fields, otherwise all fields are updated.
      *
      * @param array $fields  Optional field values which are updated, an array of 

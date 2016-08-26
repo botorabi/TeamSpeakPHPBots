@@ -76,6 +76,11 @@ abstract class TeamSpeak3_Transport_Abstract
       $config["timeout"] = 10;
     }
 
+    if(!array_key_exists("readtimeout", $config))
+    {
+      $config["readtimeout"] = 500;
+    }
+
     if(!array_key_exists("blocking", $config))
     {
       $config["blocking"] = 1;
@@ -247,11 +252,24 @@ abstract class TeamSpeak3_Transport_Abstract
    * in non-blocking mode.
    *
    * @param  integer $time
-   * @return void
+   * @param  boolean $waitForEver  Pass false in order to wait up to a timeout.
+   * @return boolean               Return true if data was ready to read, otherwise false if timout occured and $waitForEver was false.
    */
-  protected function waitForReadyRead($time = 0)
+  protected function waitForReadyRead($time = 0, $waitForEver = true)
   {
     if(!$this->isConnected() || $this->config["blocking"]) return;
+
+    if (!$waitForEver)
+    {
+      $timeoutms = $this->config["readtimeout"];
+      $timeoutsec = (int)($timeoutms / 1000);
+      $timeoutusec = ($timeoutms - $timeoutsec * 1000) * 1000;
+    }
+    else
+    {
+      $timeoutsec = $this->config["timeout"];
+      $timeoutusec = 0;
+    }
 
     do
     {
@@ -260,11 +278,18 @@ abstract class TeamSpeak3_Transport_Abstract
 
       if($time)
       {
-        TeamSpeak3_Helper_Signal::getInstance()->emit(strtolower($this->getAdapterType()) . "WaitTimeout", $time, $this->getAdapter());
+        TeamSpeak3_Helper_Signal::getInstance()->emit(strtolower($this->getAdapterType()) . "WaitTimeout", $time / 1000000, $this->getAdapter());
       }
 
-      $time = $time+$this->config["timeout"];
+      $time += $timeoutsec * 1000000 + $timeoutusec;
+      $res = @stream_select($read, $null, $null, $timeoutsec, $timeoutusec);
     }
-    while(@stream_select($read, $null, $null, $this->config["timeout"]) == 0);
+    while(($res == 0) && $waitForEver);
+
+    if (!$waitForEver && ($res == 0))
+    {
+      return false;
+    }
+    return true;
   }
 }

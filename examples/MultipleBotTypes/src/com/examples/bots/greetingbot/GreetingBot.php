@@ -33,13 +33,10 @@ class GreetingBot extends BotBase {
     protected $model = null;
 
     /**
-     * Construct a monitor bot.
-     * 
-     * @param  $server      TS3 server object
-     * @throws Exception    Throws exception if the given server is invalid.
+     * Construct the bot.
      */
-    public function __construct($server) {
-        BotBase::__construct($server);
+    public function __construct() {
+        BotBase::__construct();
         $this->model = new GreetingBotModel;
     }
 
@@ -60,37 +57,42 @@ class GreetingBot extends BotBase {
      * 
      * @implements base class method
      * 
-     * @param $server       TS3 Server object
      * @return              New instance of the bot.
      */
-    public static function create($server) {
-        return new GreetingBot($server);
+    public static function create() {
+        return new GreetingBot();
     }
 
     /**
-     * Load the bot from database and check its data.
+     * Load the bot from database.
      * 
      * @implements base class method
      * 
-     * @param int $botId    Bot ID (database table row ID)
-     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     * @param int $id       Bot ID (database table row ID)
+     * @return boolean      Return false if the object could not be loaded, otherwise true.
      */
-    public function initialize($botId) {
-
-        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $botId);
-
-        if ($this->model->loadObject($botId) === false) {
-            Log::warning(self::$TAG, "could not load bot from database: id " . $botId);
+    public function loadData($id) {
+        Log::debug(self::$TAG, "loading bot type: " . $this->getType() . ", id " . $id);
+        if ($this->model->loadObject($id) === false) {
+            Log::warning(self::$TAG, "could not load bot from database: id " . $id);
             return false;
         }
-
         Log::debug(self::$TAG, " bot succesfully loaded, name: '" . $this->getName() . "'");
+        return true;
+    }
 
+    /**
+     * Initialize the bo.
+     * 
+     * @implements base class method
+     * 
+     * @return boolean      Return true if the bot was initialized successfully, otherwise false.
+     */
+    public function initialize() {
         if (strlen($this->model->greetingText) === 0) {
             Log::warning(self::$TAG, "empty greeting text detected, deactivating the bot!");
             $this->model->active = 0;
         }
-
         return true;
     }
 
@@ -151,7 +153,8 @@ class GreetingBot extends BotBase {
             Log::debug(self::$TAG, "reloading bot configuration, type: " . $this->getType() . ", name: " .
                                    $this->getName() . ", id: " . $this->getID());
 
-            $this->initialize($this->getID());
+            $this->loadData($this->getID());
+            $this->initialize();
         }
         else {
             Log::warning(self::$TAG, "the bot was not loaded before, cannot handle its config update!");
@@ -179,7 +182,7 @@ class GreetingBot extends BotBase {
             $clid = $data["clid"];
             $clnick = $data["client_nickname"];
 
-            Log::verbose(self::$TAG, "going to greet a new client: " . $clnick);
+            //Log::verbose(self::$TAG, "going to greet a new client: " . $clnick);
 
             try {
                 // get the client
@@ -201,12 +204,9 @@ class GreetingBot extends BotBase {
      * @implements base class method
      */
     public function update() {
-
         // skip updating if the bot is not active
         if ($this->model->active == 0) {
             return;
         }
-
-        //Log::verbose(self::$TAG, "bot " . $this->getName() . " was updated");
     }
 }

@@ -24,7 +24,7 @@ class ServerBotAction {
     /**
      * @var string Class tag for logging
      */
-    protected static $TAG = "ServerBotActions";
+    protected static $TAG = "ServerBotAction";
 
     /**
      * @var BotManager The bot manager instance
@@ -48,6 +48,7 @@ class ServerBotAction {
         $this->commands["botadd"]    = array($this->botManager, "notifyBotAdd");
         $this->commands["botupdate"] = array($this->botManager, "notifyBotUpdate");
         $this->commands["botdelete"] = array($this->botManager, "notifyBotDelete");
+        $this->commands["botmsg"]    = array($this->botManager, "notifyBotMessage");
     }
 
     /**
@@ -90,9 +91,18 @@ class ServerBotAction {
         if (!is_numeric($botid)) {
             return false;
         }
+        $arg = null;
+        if (count($elems) > 3) {
+            $arg = $elems[3];
+        }
         foreach($this->commands as $name => $handler) {
             if (strcmp($cmd, $name) === 0) {
-                $handlerresult = $handler($bottype, $botid);
+                if (!is_null($arg)) {
+                    $handlerresult = $handler($bottype, $botid, $arg);
+                }
+                else {
+                    $handlerresult = $handler($bottype, $botid);                    
+                }
                 $res = $this->createResponseBotAction($bottype, $botid, $handlerresult);
                 return true;
             }

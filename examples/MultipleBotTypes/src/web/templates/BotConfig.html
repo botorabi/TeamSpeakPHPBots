@@ -37,14 +37,13 @@
 	function processBotCreate(botCtrlPage) {
 		REST.createBot(botCtrlPage, "form" + botCtrlPage, function(res) {
 			if (res.result === "ok") {
+				setupBotLists(botCtrlPage, "table" + botCtrlPage);
 				notifyServiceBotAdd(res.data.botType, res.data.id);
 				showMessageDialog("New Bot", "Bot was successfully created.", "Ok",  function() {
-					location.reload();				
 				});
 			}
 			else {
 				showMessageDialog("New Bot", "Bot could not be created!\nReason: " + res.reason, "Ok",  function() {
-					location.reload();				
 				});
 			}
 		});
@@ -52,15 +51,14 @@
 
 	function processBotModify(botCtrlPage, botType, id) {
 		REST.updateBot(botCtrlPage, id, "form" + botCtrlPage, function(res) {
+			setupBotLists(botCtrlPage, "table" + botCtrlPage);
 			if (res.result === "ok") {
 				showMessageDialog("Bot Configuration", "Bot was successfully updated.", "Ok",  function() {
-					location.reload();				
 				});
 				notifyServiceBotUpdate(botType, id);
 			}
 			else {
 				showMessageDialog("Bot Configuration", "Bot could not be updated!\nReason: " + res.reason, "Ok",  function() {
-					location.reload();				
 				});
 			}
 		});
@@ -75,6 +73,7 @@
 
 	function botNew(botCtrlPage) {
 		var elemdlgsel = "#dialog" + botCtrlPage;
+		$(elemdlgsel).addClass("oncreation");
 		$(elemdlgsel).show();
 		var dlg = $(elemdlgsel).dialog({
 			dialogClass: "no-close",
@@ -88,12 +87,16 @@
 					$(this).dialog( "close" );
 				},
 				"Create": function(event) {
+					$(this).dialog( "close" );
 					processBotCreate(botCtrlPage);
 				}
 			}
 		});
+		dlg.find("form").trigger("reset");
+		dlg.find("form").attr('botId', -1);
 		dlg.find("form").on("submit", function(event) {
 			event.preventDefault();
+			dlg.dialog( "close" );
 			processBotCreate(botCtrlPage);
 		});
 		dlg.dialog("open");
@@ -109,6 +112,7 @@
 					$(elemformsel + ' :input[name="' + field + '"]').val(value);
 				});
 				var elemdlgsel = "#dialog" + botCtrlPage;
+				$(elemdlgsel).removeClass("oncreation");
 				$(elemdlgsel).show();
 				var dlg = $(elemdlgsel).dialog({
 					dialogClass: "no-close",
@@ -127,8 +131,10 @@
 						}
 					}
 				});
+				dlg.find("form").attr('botId', id);
 				dlg.find("form").on("submit", function(event) {
 					event.preventDefault();
+					dlg.dialog( "close" );
 					processBotModify(botCtrlPage, botType, res.data.id);
 				});
 				dlg.dialog("open");
@@ -145,10 +151,10 @@
 		"No", null,
 		"Yes", function() {
 			REST.deleteBot(botCtrlPage, id, function (res) {
+				setupBotLists(botCtrlPage, "table" + botCtrlPage);			
 				if (res.result === "ok") {
 					notifyServiceBotDelete(botType, id);
 					showMessageDialog("Delete Bot", "Bot was successfully deleted.", "Ok", function() {
-						location.reload();				
 					});
 				}
 				else {
@@ -160,6 +166,7 @@
 
 	function botEnable(botCtrlPage, botType, id, enable) {
 		REST.enableBot(botCtrlPage, id, enable, function (res) {
+			setupBotLists(botCtrlPage, "table" + botCtrlPage);			
 			if (res.result === "ok") {
 				setTimeout(function() {
 					notifyServiceBotUpdate(botType, id);
@@ -167,7 +174,6 @@
 			}
 			else {
 				showMessageDialog("Bot Activation", "Bot activation state could not be changed.\nReason: " + res.reason, "Ok", null);
-				location.reload();				
 			}
 		});
 	}

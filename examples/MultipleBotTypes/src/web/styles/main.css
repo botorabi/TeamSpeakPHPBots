@@ -164,6 +164,10 @@ h2 {
     width: 100%;
 }
 
+.oncreation .modifyonly {
+    display: none;
+}
+
 .formbuttons {
     margin-top: 30px;
     text-align: right;
