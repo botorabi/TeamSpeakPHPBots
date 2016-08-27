@@ -25,8 +25,8 @@ class TestBot extends BotBase {
      * @param  Object $server   TS3 server object
      * @throws Exception        Throws exception if the given server is invalid.
      */
-    public function __construct($server) {
-      parent::__construct($server);
+    public function __construct() {
+      parent::__construct();
       $this->model = new TestBotModel;  
     }
 
@@ -46,8 +46,23 @@ class TestBot extends BotBase {
      * @param Object $server TS3 Server object
      * @return Object        New instance of the bot.
      */
-    static public function create($server) {
-        return new TestBot($server);
+    static public function create() {
+        return new TestBot();
+    }
+
+    /**
+     * Load the bot from database.
+     * 
+     * @implements base class method
+     * 
+     * @param int $id       Bot ID (database table row ID)
+     * @return boolean      Return false if the object could not be loaded, otherwise true.
+     */
+    public function loadData($id) {
+        if ($this->model->loadObject($id) === false) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -57,8 +72,11 @@ class TestBot extends BotBase {
      * @param int $botId    The database ID
      * @return boolean      Return true if the bot was initialized successfully, otherwise false.
      */
-    public function initialize($botId) {
-        return $this->model->loadObject($botId);
+    public function initialize() {
+        if (is_null($this->ts3Server)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -118,5 +136,4 @@ class TestBot extends BotBase {
      * Override it in a derived class if it is needed.
      */
     public function onConfigUpdate() {}
-
 }

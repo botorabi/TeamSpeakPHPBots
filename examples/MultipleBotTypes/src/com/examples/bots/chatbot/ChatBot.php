@@ -449,7 +449,10 @@ class ChatBot extends BotBase {
             if (is_null($arg)) {
                 $arg = "berlin";
             }
-            $reply = "Weather: " . $this->getWeather($arg);
+            $w = $this->getWeather($arg);
+            if (!is_null($w)) {
+                $reply = "Weather: " . $w;
+            }
         }
 
         return $reply;
@@ -460,7 +463,7 @@ class ChatBot extends BotBase {
      * 
      * @param string $city              City
      * @param boolean $useMetricUnits   Pass true in order to use metric units, otherwise user US units.
-     * @return string                   Return a text containing weather information
+     * @return string                   Return a text containing weather information, or null if no information is available.
      */
     protected function getWeather($city, $useMetricUnits = true) {
 

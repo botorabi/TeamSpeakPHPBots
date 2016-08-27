@@ -21,8 +21,8 @@ abstract class Configuration {
     //! TS3 Server Query related config
     public static  $TSPHPBOT_CONFIG_TS3SERVER_QUERY = [
         "host"          => "localhost",
-        "userName"      => "serveradmin",       // TeamSpeak user name
-        "password"      => "MyPassword",        // TeamSpeak user password
+        "userName"      => "serveradmin",       // put your TS3 user name here
+        "password"      => "exffRAo3",          // put your TS3 user password here
         "hostPort"      => 10011,
         "vServerPort"   => 9987,
         "pollInterval"  => 2,                   // intervall of bot control steps in seconds
