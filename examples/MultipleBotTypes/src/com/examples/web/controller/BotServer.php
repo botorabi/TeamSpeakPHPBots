@@ -106,6 +106,9 @@ class BotServer extends BaseController {
         else if (isset($params["delete"])) {
             $this->cmdBotDelete($params["botType"], $params["delete"]);
         }
+        else if (isset($params["msg"])) {
+            $this->cmdBotMessage($params["botType"], $params["msg"], $params["text"]);
+        }
         else {
             $this->renderView($this->renderClassName, null);
         }
@@ -273,6 +276,35 @@ class BotServer extends BaseController {
 
         if (is_null($result)) {
             Log::debug(self::$TAG, " could not delete bot");
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        Log::printEcho(json_encode(["result" => "ok"]));
+    }
+
+    /**
+     * Send a message to the bot given its ID and type.
+     * 
+     * @param string $botType       Bot type
+     * @param int $id               Bot ID
+     * @param string $text          Message text
+     */
+    protected function cmdBotMessage($botType, $id, $text) {
+
+        Log::debug(self::$TAG, "sending message to bot, id: " . $id);
+
+        $servicequery = new ClientQuery;
+        $servicequery->connect();
+        if ($servicequery->connect() === false) {
+            Log::printEcho(json_encode(["result" => "nok"]));
+            return;
+        }
+
+        $result = $servicequery->botMessage($botType, $id, $text);
+
+        if (is_null($result)) {
+            Log::debug(self::$TAG, " could not send message to bot");
             Log::printEcho(json_encode(["result" => "nok"]));
             return;
         }

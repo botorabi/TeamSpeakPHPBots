@@ -38,7 +38,7 @@ class ChatBot extends BotBase {
     protected $replyQueue = [];
 
     /**
-     * @var boolean  Flag for issuring an initial greet.
+     * @var boolean  Flag for sending an initial greet.
      */
     protected $initialGreet = false;
 
@@ -64,7 +64,6 @@ class ChatBot extends BotBase {
      * @return boolean          Return true if an own server connection should be created for the bot.
      */
     public function needsOwnServerConnection(&$nickName) {
-        // replace any blanks in the name
         $nickName = $this->model->nickName;
         return true;
     }
@@ -77,7 +76,7 @@ class ChatBot extends BotBase {
      * 
      * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
      */
-    static public function getAllIDs() {
+    public static function getAllIDs() {
         return (new ChatBotModel)->getAllObjectIDs();
     }
 
@@ -118,10 +117,16 @@ class ChatBot extends BotBase {
      * @return boolean      Return true if the bot was initialized successfully, otherwise false.
      */
     public function initialize() {
+        if (is_null($this->ts3Server)) {
+            Log::warning(self::$TAG, "cannot initialize the bot, missing server connection, deactivating the bot!");
+            $this->model->active = 0;
+            return false;
+        }
+
         $this->model->greetingText = trim($this->model->greetingText);
         $this->model->nickName = trim($this->model->nickName);
 
-        if (strlen(trim($this->model->nickName)) === 0) {
+        if (strlen($this->model->nickName) === 0) {
             Log::warning(self::$TAG, "empty nick name detected, deactivating the bot!");
             $this->model->active = 0;
         }
@@ -388,6 +393,27 @@ class ChatBot extends BotBase {
     }
 
     /**
+     * Given a command line return the blank seperated strings next to the command.
+     * 
+     * @param type $cmdLine     Entire command line
+     * @param type $cmd         Cmd string
+     * @return string           Cmd argument if any exists, or null
+     */
+    protected function getCmdArgs($cmdLine, $cmd) {
+        $parts = explode(" ", $cmdLine);
+        $pos = 0;
+        foreach($parts as $part) {
+            if (strcmp(strtolower($part), $cmd) === 0) {
+                if (count($parts) > $pos + 1) {
+                   return implode(" ", array_slice($parts, $pos + 1));
+                }
+            }
+            $pos++;
+        }
+        return null;
+    }
+
+    /**
      * Reply to incoming message.
      * 
      * @param string $msg       Incoming message
@@ -419,12 +445,11 @@ class ChatBot extends BotBase {
             $reply = "It is: " . date('l jS \of F Y, H : i : s');
         }
         else if ($this->strContains($text, "weather")) {
-            $parts = explode(" ", $msg);
-            $city = "berlin";
-            if (count($parts) > 1) {
-                $city = $parts[1];
+            $arg = $this->getCmdArgs($text, "weather");
+            if (is_null($arg)) {
+                $arg = "berlin";
             }
-            $reply = "Weather: " . $this->getWeather($city);
+            $reply = "Weather: " . $this->getWeather($arg);
         }
 
         return $reply;
@@ -441,7 +466,7 @@ class ChatBot extends BotBase {
 
         $baseurl = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22@CITY@%22)@UNIT@&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
-        $c = trim(str_replace(" ", "\20", $city));
+        $c = trim(str_replace(" ", "\20", urlencode($city)));
         $url = str_replace("@CITY@", $c, $baseurl);
         if ($useMetricUnits) {
             $url = str_replace("@UNIT@", "%20and%20u%3D'c'", $url);
@@ -463,7 +488,8 @@ class ChatBot extends BotBase {
             $ch = &$response["query"]["results"]["channel"];
             $units = $ch["units"];
 
-            $location = $ch["location"]["city"] . " (" . $ch["location"]["country"] . ")";
+            $locationcity = $ch["location"]["city"];
+            $locationcountry = $ch["location"]["country"];
             $temperatur = $ch["item"]["condition"]["temp"] . " " . $units["temperature"] . ", " . $ch["item"]["condition"]["text"];
             $windspeed = $ch["wind"]["speed"] . " ". $units["speed"];
             $winddir = $ch["wind"]["direction"];
@@ -473,8 +499,13 @@ class ChatBot extends BotBase {
         catch (Exception $ex) {
             return null;
         }
-        
+
         $text = "Powered by Yahoo! Weather, ";
+        if (strlen($locationcity) === 0) {
+            $text .= "Cannot find any information about the city: " . $city . "! Try the city name using ASCII characters.";
+            return $text;
+        }
+        $location = $locationcity . " (" . $locationcountry . ")";
         $text .= $location . ", ";
         $text .= "Temperatur: " . $temperatur . ", ";
         $text .= "Wind: speed " . $windspeed . " direction " . $winddir . ", ";

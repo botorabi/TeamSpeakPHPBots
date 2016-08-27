@@ -247,6 +247,7 @@ class BotManager {
                 $srv = $this->ts3DefaultConnection;
             }
             $bot->setServer($srv);
+            $loadResult = $bot->initialize();
         }
         catch (Exception $e) {
             Log::warning(self::$TAG, "could not create instance of bot class: " . $botClass);
@@ -255,7 +256,6 @@ class BotManager {
             $loadResult = false;
             return null;
         }
-        $loadResult = $bot->initialize();
         return $bot;
     }
 
