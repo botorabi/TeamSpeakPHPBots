@@ -36,7 +36,7 @@ class TestBot extends BotBase {
      * 
      * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
      */
-    static public function getAllIDs() {
+    public static function getAllIDs() {
         return TestBotModel::getAllObjectIDs();
     }
 
@@ -46,7 +46,7 @@ class TestBot extends BotBase {
      * @param Object $server TS3 Server object
      * @return Object        New instance of the bot.
      */
-    static public function create() {
+    public static function create() {
         return new TestBot();
     }
 

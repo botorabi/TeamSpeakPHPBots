@@ -71,7 +71,7 @@ class GreetingBotModel extends DBObject {
      * 
      * @return string Database table name
      */
-    static public function getTableName() {
+    public static function getTableName() {
         return Config::getDB("tablePrefix") . self::$DB_TABLE_NAME_BOT;
     }
 }
