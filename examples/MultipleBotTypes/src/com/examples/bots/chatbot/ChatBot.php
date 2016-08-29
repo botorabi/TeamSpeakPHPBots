@@ -389,7 +389,8 @@ class ChatBot extends BotBase {
     protected function strContains($haystack, $needle) {
         $h = strtolower($haystack);
         $n = strtolower($needle);
-        return (strpos($h, $n) !== false);
+        $parts = explode(" ", $h);
+        return in_array($n, $parts);
     }
 
     /**
