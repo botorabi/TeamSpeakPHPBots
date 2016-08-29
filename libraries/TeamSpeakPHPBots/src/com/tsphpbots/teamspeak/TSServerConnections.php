@@ -64,7 +64,7 @@ class TSServerConnections {
     /**
      * @var int  Default notification registration flags
      */
-    public static $REG_FLAGS_DEFAULT = (2 | 8 | 16);
+    public static $REG_FLAGS_DEFAULT = 26; // 2 | 8 | 16;
 
 
     /**
@@ -94,7 +94,7 @@ class TSServerConnections {
      * @param int $registrationFlags A combination of registration flags
      * @return Object                TS3 Server
      */
-    public function createConnection($nickName, $cbEvent, $registrationFlags = (2 | 8 | 16)) {
+    public function createConnection($nickName, $cbEvent, $registrationFlags = 26) {
         if (!is_null($cbEvent) && !is_callable($cbEvent, true)) {
             Log::error(self::$TAG, "cbEvent is not callable!");
             return null;
@@ -134,30 +134,29 @@ class TSServerConnections {
             return null;
         }
 
-        /* register for interested events */
-        /* NOTE: If you register for both, "server" and "channel", then take into account that you might get
-         * alot of notifications twice!
-         */
+        $regs = [];
         if (($registrationFlags & self::$REG_FLAG_CHANNEL) !== 0) {
             $server->notifyRegister("channel");
-            Log::verbose(self::$TAG, " adding notify reg: channel");
+            $regs[] = "channel";
         }
         if (($registrationFlags & self::$REG_FLAG_SERVER) !== 0) {
             $server->notifyRegister("server");
-            Log::verbose(self::$TAG, " adding notify reg: server");
+            $regs[] = "server";
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTSERVER) !== 0) {
             $server->notifyRegister("textserver");
-            Log::verbose(self::$TAG, " adding notify reg: textserver");
+            $regs[] = "textserver";
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTCHANNEL) !== 0) {
             $server->notifyRegister("textchannel");
-            Log::verbose(self::$TAG, " adding notify reg: textchannel");
+            $regs[] = "textchannel";
         }
         if (($registrationFlags & self::$REG_FLAG_TEXTPRIVATE) !== 0) {
             $server->notifyRegister("textprivate");
-            Log::verbose(self::$TAG, " adding notify reg: textprivate");
+            $regs[] = "textprivate";
         }
+
+        Log::verbose(self::$TAG, " adding notify registration for: " . implode(" ", $regs));
 
         return $server;
     }

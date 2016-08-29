@@ -47,7 +47,7 @@ abstract class Config {
      * 
      * @return string   Framework version
      */
-    static public function getFrameworkVersion() {
+    public static function getFrameworkVersion() {
 
         return self::$FRAMEWORK_VERSION;
     }
@@ -59,7 +59,7 @@ abstract class Config {
      * @param  string $configName      Name of configuration token
      * @return Object                  Return configuration value or null if the given name does not exist.
      */
-    static public function getDB($configName) {
+    public static function getDB($configName) {
 
         return self::getTokenValue(\Configuration::$TSPHPBOT_CONFIG_DB, $configName);
     }
@@ -71,7 +71,7 @@ abstract class Config {
      * @param string $configName      Name of configuration token
      * @return Object                 Return configuration value or null if the given name does not exist.
      */
-    static public function getTS3ServerQuery($configName) {
+    public static function getTS3ServerQuery($configName) {
 
         return self::getTokenValue(\Configuration::$TSPHPBOT_CONFIG_TS3SERVER_QUERY, $configName);
     }
@@ -83,7 +83,7 @@ abstract class Config {
      * @param string $configName    Name of configuration token
      * @return Object               Return configuration value or null if the given name does not exist.
      */
-    static public function getBotService($configName) {
+    public static function getBotService($configName) {
 
         return self::getTokenValue(\Configuration::$TSPHPBOT_CONFIG_BOT_SERVICE, $configName);
     }
@@ -95,7 +95,7 @@ abstract class Config {
      * @param string $configName      Name of configuration token
      * @return Object                 Return configuration value or null if the given name does not exist.
      */
-    static public function getWebInterface($configName) {
+    public static function getWebInterface($configName) {
 
         return self::getTokenValue(\Configuration::$TSPHPBOT_CONFIG_WEB_INTERFACE, $configName);
     }

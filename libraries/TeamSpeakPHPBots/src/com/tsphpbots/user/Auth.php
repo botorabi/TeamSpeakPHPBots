@@ -64,7 +64,7 @@ abstract class Auth {
      * 
      * @return boolean  Return true if the user is logged in, otherwise false.
      */
-    static public function isLoggedIn() {
+    public static function isLoggedIn() {
 
         $loggedin = false;
         if (isset($_SESSION[self::$SESSION_PREFIX]) &&
@@ -107,7 +107,7 @@ abstract class Auth {
      *                         md5(the stored pw in database(should also be in md5) + session id as salt)
      * @return boolean        Return true if successfully logged in, otherwise false.
      */
-    static public function login($name, $pw) {
+    public static function login($name, $pw) {
 
         if (self::isLoggedIn()) {
             self::logout();
@@ -159,7 +159,7 @@ abstract class Auth {
      * 
      * @return boolean  Return true if successfull, otherwise false
      */
-    static public function logout() {
+    public static function logout() {
 
         if (!self::isLoggedIn()) {
             return true;
@@ -178,7 +178,7 @@ abstract class Auth {
      * 
      * @return int Time left in seconds, or a value < 0 if no timeout is configured.
      */
-    static public function leftTime() {
+    public static function leftTime() {
 
         // check if a timeout is configured
         $timeout = 60 * Config::getWebInterface("sessionTimeout");
@@ -204,7 +204,7 @@ abstract class Auth {
      * 
      * @return string  User name, null if not logged in
      */
-    static public function getUserName() {
+    public static function getUserName() {
         if (self::isLoggedIn()) {
             return $_SESSION[self::$SESSION_PREFIX][self::$SESSIONKEY_USER_NAME];
         }
@@ -217,7 +217,7 @@ abstract class Auth {
      * 
      * @return int  User ID, null if not logged in
      */
-    static public function getUserID() {
+    public static function getUserID() {
         if (self::isLoggedIn()) {
             return $_SESSION[self::$SESSION_PREFIX][self::$SESSIONKEY_USER_ID];
         }

@@ -122,7 +122,7 @@ class User extends DBObject {
      * 
      * @return string The database table name
      */
-    static public function getTableName() {
+    public static function getTableName() {
         return Config::getDB("tablePrefix") . self::$DB_TABLE_NAME_USER;
     }
 
@@ -184,7 +184,7 @@ class User extends DBObject {
      * @param string $login User login
      * @return User         User object if found, or null if no user found with given login.
      */
-    static public function getUserByLogin($login) {   
+    public static function getUserByLogin($login) {   
         $users = DB::getObjects(self::getTableName(), [self::$DB_TABLE_USER_LOGIN => $login]);
         if (count($users) > 1) {
             Log::error(self::$TAG, "Internal error, more than one user entry was found in database with same login!");
@@ -204,7 +204,7 @@ class User extends DBObject {
      * @param string $email User's email
      * @return User         User object if found, or null if no user found with given email.
      */
-    static public function getUserByEmail($email) {   
+    public static function getUserByEmail($email) {   
         $users = DB::getObjects(self::getTableName(), [self::$DB_TABLE_USER_EMAIL => $email]);
         if (count($users) > 1) {
             Log::error(self::$TAG, "Internal error, more than one user entry was found in database with same email!");

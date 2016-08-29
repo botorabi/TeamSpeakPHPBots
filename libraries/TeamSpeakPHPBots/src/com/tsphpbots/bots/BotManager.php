@@ -121,12 +121,23 @@ class BotManager {
      * bots which wish to have the automatic database and house-keeping functinoality
      * of the BotManager. 
      * 
+     * The bot type is expected to be the last element in a full qualified class path including the package namespace.
+     * For example following bot class 'com/myapp/bots/MyBot' is expected to have the bot type 'MyBot' which is defined
+     * in the bot class MyBot, see BotBase class' method getType().
+     * 
      * @param string $botClass      The full qualified name (including package path) of the bot class to register.
      *                              For package name separation one can also use forward slashes.
+     * @return boolean              Return false if the bot class is already registered, otherwise true.
      */
     public function registerBotClass($botClass) {
         $cleanpath = str_replace("/", "\\", $botClass);
+        foreach($this->botClasses as $class) {
+            if (strcmp($class, $cleanpath) === 0) {
+                return false;
+            }
+        }
         $this->botClasses[] = $cleanpath;
+        return true;
     }
 
     /**
@@ -144,7 +155,7 @@ class BotManager {
                 $newbot = $this->createBot($botclass, $id, $loadresult);
                 if (is_null($newbot)) {
                     Log::warning(self::$TAG, " could not create bot");
-                    return false;
+                    continue;
                 }
                 $this->addBot($newbot);
             }
@@ -205,9 +216,10 @@ class BotManager {
 
     /**
      * Given a bot type try to find its class in registered classes.
+     * We expect that the bot type is the last element in the class path.
      * 
      * @param string $botType       Bot type
-     * @return sting                Return null if the class could not be found.
+     * @return string               Return null if the class could not be found.
      */
     public function findBotClass($botType) {
         if (is_null($botType) || (strlen($botType) === 0)) {
@@ -247,6 +259,7 @@ class BotManager {
                 $srv = $this->ts3DefaultConnection;
             }
             $bot->setServer($srv);
+            $loadResult = $bot->initialize();
         }
         catch (Exception $e) {
             Log::warning(self::$TAG, "could not create instance of bot class: " . $botClass);
@@ -255,7 +268,6 @@ class BotManager {
             $loadResult = false;
             return null;
         }
-        $loadResult = $bot->initialize();
         return $bot;
     }
 

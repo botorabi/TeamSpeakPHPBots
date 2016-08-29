@@ -49,7 +49,7 @@ abstract class DBObject {
      * 
      * @return string   Database table name
      */
-    abstract static public function getTableName();
+    abstract public static function getTableName();
 
     /**
      * Implement this method by derived classes in order to define the object
