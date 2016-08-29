@@ -39,7 +39,7 @@ class DB {
      * 
      * @return  true if the connection was successful, otherwise false
      */
-    static public function connect() {
+    public static function connect() {
 
         if (self::$dbh) {
             return true;
@@ -69,7 +69,7 @@ class DB {
      * 
      * @return       true if successful, otherwise false
      */
-    static public function disconnect() {
+    public static function disconnect() {
         self::$dbh = null;
         return true;
     }
@@ -81,7 +81,7 @@ class DB {
      * @return          Statement object
      * @throws          Exception or PDOException
      */
-    static public function prepareStatement($sql) {
+    public static function prepareStatement($sql) {
         if (self::$dbh == null) {
             throw new \Exception("Cannot prepare SQL, no database connection exists!");
         }
@@ -94,7 +94,7 @@ class DB {
      * @return  Last created ID used for a new table
      * @throws  Exception or PDOException
      */
-    static public function getLastInsertId() {
+    public static function getLastInsertId() {
         if (self::$dbh == null) {
             throw new \Exception("Cannot get last inserted ID, no database connection exists!");
         }
@@ -110,7 +110,7 @@ class DB {
      * @return              All found objects (can also be empty), or null if the table does not exist
      *                      or there is no connection to database.
      */
-    static public function getObjects($tableName, array $filter = null) {
+    public static function getObjects($tableName, array $filter = null) {
         
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot get database objects!");
@@ -170,7 +170,7 @@ class DB {
      * @return              All found object IDs (can also be empty), or null if the table does not exist
      *                      or there is no connection to database.
      */
-    static public function getObjectIDs($tableName) {
+    public static function getObjectIDs($tableName) {
         
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot get database objects IDs!");
@@ -207,7 +207,7 @@ class DB {
      * @return              Count of found objects, or null if the table does not exist
      *                      or there is no connection to database.
      */
-    static public function getObjectCount($tableName) {
+    public static function getObjectCount($tableName) {
         
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot get database objects count!");
@@ -242,7 +242,7 @@ class DB {
      *                                comma separated string array.
      * @return                  Object ID if successful, otherwise null.
      */
-    static public function createObject($tableName, array $fields) {
+    public static function createObject($tableName, array $fields) {
 
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot create database object!");
@@ -294,7 +294,7 @@ class DB {
      *                      tuples [field name -> value].
      * @return             true if successful, otherwise false
      */
-    static public function updateObject($tableName, $id, array $fields) {
+    public static function updateObject($tableName, $id, array $fields) {
 
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot update database object!");
@@ -338,7 +338,7 @@ class DB {
      * @param $id           Object ID
      * @return              true if successful, otherwise false.
      */
-    static public function deleteObject($tableName, $id) {
+    public static function deleteObject($tableName, $id) {
         
         if (!DB::connect()) {
             Log::warning(self::$TAG, "Cannot connect database, cannot delete database object!");

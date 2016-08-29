@@ -59,7 +59,7 @@ abstract class Log {
      * 
      * @param boolean $en     Pass true for using error_log, otherwise echo is used.
      */
-    static public function useErrorLog($en) {
+    public static function useErrorLog($en) {
 
         self::$useErrorLog = $en;
     }
@@ -69,7 +69,7 @@ abstract class Log {
      * 
      * @return boolean  Return true if error_log is used, false if echo is used.
      */
-    static public function isErrorLogUsed() {
+    public static function isErrorLogUsed() {
 
         return self::$useErrorLog;
     }
@@ -80,7 +80,7 @@ abstract class Log {
      * 
      * @param boolean $en     Enable/disable outputting messages by 'printEcho'
      */
-    static public function enablePrintEcho($en) {
+    public static function enablePrintEcho($en) {
 
         self::$enablePrintEcho = $en;
     }
@@ -90,7 +90,7 @@ abstract class Log {
      * 
      * @return boolean Return true if enabled, otherwise false.
      */
-    static public function isEnabledPrintEcho() {
+    public static function isEnabledPrintEcho() {
 
         return self::$enablePrintEcho;
     }
@@ -100,7 +100,7 @@ abstract class Log {
      * 
      * @param string $msg     Message to log
      */
-    static public function printEcho($msg) {
+    public static function printEcho($msg) {
 
         if (self::$enablePrintEcho) {
             echo $msg;
@@ -113,7 +113,7 @@ abstract class Log {
      * @param string $tag     Message tag  
      * @param string $msg     Message to log
      */
-    static public function verbose($tag, $msg) {
+    public static function verbose($tag, $msg) {
 
         self::logMsg("[V]", "(" . $tag . ") ", $msg);
     }
@@ -124,7 +124,7 @@ abstract class Log {
      * @param string $tag     Message tag  
      * @param string $msg     Message to log
      */
-    static public function debug($tag, $msg) {
+    public static function debug($tag, $msg) {
 
         self::logMsg("[D]", "(" . $tag . ") ", $msg);
     }
@@ -135,7 +135,7 @@ abstract class Log {
      * @param string $tag     Message tag  
      * @param string $msg     Message to log
      */
-    static public function info($tag, $msg) {
+    public static function info($tag, $msg) {
 
         self::logMsg("[I]", "(" . $tag . ") ", $msg);
     }
@@ -146,7 +146,7 @@ abstract class Log {
      * @param string $tag     Message tag  
      * @param string $msg     Message to log
      */
-    static public function error($tag, $msg) {
+    public static function error($tag, $msg) {
 
         self::logMsg("[E]", "(" . $tag . ") ", $msg);
     }
@@ -157,7 +157,7 @@ abstract class Log {
      * @param string $tag     Message tag  
      * @param string $msg     Message to log
      */
-    static public function warning($tag, $msg) {
+    public static function warning($tag, $msg) {
 
         self::logMsg("[W]", "(" . $tag . ") ", $msg);
     }
@@ -167,7 +167,7 @@ abstract class Log {
      * 
      * @param string $msg     Message to log
      */
-    static public function raw($msg) {
+    public static function raw($msg) {
 
         self::logMsg("", "", $msg);
     }

@@ -31,7 +31,8 @@ class BotBaseTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp() {
         // create a new bot for the test
-        $this->bot = TestBot::create($this->ts3Server);
+        $this->bot = TestBot::create();
+        $this->bot->setServer($this->ts3Server);
         $this->bot->model->create();
         $this->botId = $this->bot->getID();
         // setup the bot
@@ -63,8 +64,17 @@ class BotBaseTest extends \PHPUnit_Framework_TestCase
      * @covers com\tsphpbots\bots\BotBase::create
      */
     public function testCreate() {
-        $newbot = TestBot::create($this->ts3Server);
+        $newbot = TestBot::create();
         $this->assertTrue(!is_null($newbot), "Could not create new bot!");
+    }
+
+    /**
+     * @covers com\tsphpbots\bots\BotBase::loadData
+     */
+    public function testLoadData() {
+        $newbot = TestBot::create();
+        $res = $newbot->loadData($this->botId);
+        $this->assertTrue($res === true, "Could not load bot data!");
     }
 
     /**

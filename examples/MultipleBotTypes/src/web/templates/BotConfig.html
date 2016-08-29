@@ -94,7 +94,7 @@
 		});
 		dlg.find("form").trigger("reset");
 		dlg.find("form").attr('botId', -1);
-		dlg.find("form").on("submit", function(event) {
+		dlg.find("form").off("submit").on("submit", function(event) {
 			event.preventDefault();
 			dlg.dialog( "close" );
 			processBotCreate(botCtrlPage);
@@ -132,7 +132,7 @@
 					}
 				});
 				dlg.find("form").attr('botId', id);
-				dlg.find("form").on("submit", function(event) {
+				dlg.find("form").off("submit").on("submit", function(event) {
 					event.preventDefault();
 					dlg.dialog( "close" );
 					processBotModify(botCtrlPage, botType, res.data.id);

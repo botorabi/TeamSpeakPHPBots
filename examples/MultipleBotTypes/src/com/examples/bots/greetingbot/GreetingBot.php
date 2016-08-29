@@ -48,7 +48,7 @@ class GreetingBot extends BotBase {
      * 
      * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
      */
-    static public function getAllIDs() {
+    public static function getAllIDs() {
         return (new GreetingBotModel)->getAllObjectIDs();
     }
 

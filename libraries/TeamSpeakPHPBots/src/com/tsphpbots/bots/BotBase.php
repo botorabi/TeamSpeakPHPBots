@@ -69,14 +69,14 @@ abstract class BotBase {
      * 
      * @return array    Array of all available bot IDs, or null if there is no corresponding table in database.
      */
-    abstract static public function getAllIDs();
+    abstract public static function getAllIDs();
 
     /**
      * Create a new bot instance.
      * 
      * @return Object        New instance of the bot.
      */
-    abstract static public function create();
+    abstract public static function create();
 
     /**
      * Load the bot from database.
@@ -96,7 +96,7 @@ abstract class BotBase {
     abstract public function initialize();
 
     /**
-     * Get the bot type.
+     * Get the bot type. This is usually the bot class name.
      * 
      * @return string       The bot type
      */

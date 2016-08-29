@@ -33,8 +33,7 @@ class TestBotModel extends DBObject {
     private static $BOT_TYPE_NAME = "TestBot";
 
     /**
-     * Setup the object fields. Note that a field called "id" is automatically
-     * created for the object, no need to define it here!
+     * Setup the object fields.
      * 
      * @implementes DBObject
      *
@@ -45,6 +44,7 @@ class TestBotModel extends DBObject {
      *   nickName                       Bot's nick name
      */
     public function setupFields() {
+        $this->objectFields["id"]            = 0; // for testing we set the ID for tests which do not need the database.
         $this->objectFields["botType"]       = self::$BOT_TYPE_NAME;
         $this->objectFields["name"]          = "";
         $this->objectFields["description"]   = "";
@@ -73,7 +73,7 @@ class TestBotModel extends DBObject {
      * 
      * @return string Database table name
      */
-    static public function getTableName() {
+    public static function getTableName() {
         return Config::getDB("tablePrefix") . self::$DB_TABLE_NAME_BOT;
     }
 }

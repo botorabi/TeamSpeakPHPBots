@@ -19,6 +19,8 @@ ini_set("display_errors",1);
 
 
 require_once("TestConfiguration.php");
+require_once("../../../examples/libraries/TeamSpeak3/TeamSpeak3.php");
+
 use com\tsphpbots\db\DB;
 
 
