@@ -89,6 +89,37 @@ class DB {
     }
 
     /**
+     * Execute the given statement and do an automatic connection recovery if it was lost.
+     * 
+     * @param Object $statement     PDO statement
+     * @return boolean              Return true if successful, otherwise false.
+     */
+    public static function executeStatement($statement) {
+        $statement->execute();
+        $res = $statement->errorInfo();
+        if (strcmp($res[0], "00000")) {
+            // check if the server connection was lost, if so try to recover
+            if ((strcmp($res[1], "2006") === 0 ) || (strcmp($res[1], "2013") === 0)) {
+                Log::debug(self::$TAG, "lost connection to database, try to reconnect");
+                // reconnect to database
+                self::disconnect();
+                self::connect();
+                $statement->execute();
+                $res = $statement->errorInfo();
+                if (strcmp($res[0], "00000")) {
+                    Log::warning(self::$TAG, " database errorinfo: " . print_r($res, true));
+                    return false;
+                }
+            }
+            else {
+                Log::warning(self::$TAG, "database errorinfo: " . print_r($res, true));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Return the ID used for the last table raw creation (so far its ID was an auto-generated).
      * 
      * @return  Last created ID used for a new table
@@ -132,17 +163,15 @@ class DB {
                     }
                     $closure .= $key . " = " . ":" . $key;
                 }
-                //echo "closure " . $closure . "\n";
                 $stmt = DB::prepareStatement("SELECT * FROM " . $fulltablename . " WHERE " . $closure);
                 // bind the values
                 foreach($filter as $key => $value) {
                     $stmt->bindValue(":" . $key, $value);
                 }
             }
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "getObjects, db errorinfo: " . print_r($res, true));
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "getObjects, could not perform database operation!");
                 return null;
             }
 
@@ -181,10 +210,9 @@ class DB {
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
             $stmt = DB::prepareStatement("SELECT id FROM " . $fulltablename);
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "getAllObjectIDs, db errorinfo: " . print_r($res, true));
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "getAllObjectIDs, could not perform database operation!");
                 return null;
             }
 
@@ -217,10 +245,9 @@ class DB {
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
             $stmt = DB::prepareStatement("SELECT COUNT(*) FROM " . $fulltablename);
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "getObjectCount, db errorinfo: " . print_r($res, true));
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "getObjectCount, could not perform database operation!");
                 return null;
             }
 
@@ -269,12 +296,12 @@ class DB {
             foreach($fields as $key => $value) {
                 $stmt->bindValue(":" . $key, self::encodeFieldValue($value));
             }
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "createObject, errorinfo: " . print_r($res, true));
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "createObject, could not perform database operation!");
                 return null;
             }
+
             $userid = DB::getLastInsertId();
         }
         catch (PDOException $e) {
@@ -317,11 +344,10 @@ class DB {
             foreach($fields as $key => $value) {
                 $stmt->bindValue(":" . $key, self::encodeFieldValue($value));
             }
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "updateObject, errorinfo: " . print_r($res, true));
-                return null;
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "updateObject, could not perform database operation!");
+                return false;
             }
         }
         catch (PDOException $e) {
@@ -349,10 +375,9 @@ class DB {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
             $sql = "DELETE FROM " . $fulltablename . " WHERE id=" . $id;
             $stmt = DB::prepareStatement($sql); 
-            $stmt->execute();
-            $res = $stmt->errorInfo();
-            if (strcmp($res[0], "00000")) {
-                Log::warning(self::$TAG, "deleteObject, errorinfo: " . print_r($res, true));
+
+            if (self::executeStatement($stmt) === false) {
+                Log::warning(self::$TAG, "deleteObject, could not perform database operation!");
                 return false;
             }
         }
@@ -362,8 +387,7 @@ class DB {
         }
         return true;
     }
-    
-                // NOTE 
+
     /**
      * Encode a field value ready for storing into database.
      * If the value is an array then it will get converted to a 
