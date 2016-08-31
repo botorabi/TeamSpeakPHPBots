@@ -56,6 +56,23 @@ class DBTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @covers com\tsphpbots\db\DB::executeStatement
+     */
+    public function testExecuteStatement() {
+
+        try {
+            $sql = "SELECT * FROM user";
+            $stm = DB::prepareStatement($sql);
+            $this->assertTrue($stm != null, "Creating an SQL statement failed!");
+            $res = DB::executeStatement($stm);
+            $this->assertTrue($res === true, "Could not execute statement!");           
+            
+        } catch (Exception $e) {
+            $this->assertTrue(false, "Could not prepare SQL statement! Reason: " . $e . getMessage());
+        }
+    }
+
+    /**
      * @covers com\tsphpbots\db\DB::getLastInsertId
      */
     public function testGetLastInsertId() {
