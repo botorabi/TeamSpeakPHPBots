@@ -94,7 +94,16 @@ class BotManager {
             //Log::debug(self::$TAG, "update bot: " . $stream . ", bot type: " . $bot->getType());
             $bot->update();
         }
-        $this->ts3Connection->update();
+        // calculate the timeout for polling the server connections
+        if ($this->numConnections === 0) {
+            $timeout = 1000;
+        }
+        else {
+            $timeout = (Config::getTS3ServerQuery("pollInterval") * 1000.0) / $this->numConnections;
+        }
+        // limit the timout to a minimum of 100 ms
+        $timeout = $timeout < 100 ? 100 : $timeout;       
+        $this->ts3Connection->update($timeout);
     }
 
     /**

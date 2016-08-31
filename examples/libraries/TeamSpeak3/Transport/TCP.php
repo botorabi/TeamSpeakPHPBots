@@ -100,11 +100,11 @@ class TeamSpeak3_Transport_TCP extends TeamSpeak3_Transport_Abstract
    * Reads a single line of data from the stream.
    *
    * @param  string $token
-   * @param  boolean $waitForEver  Pass false in order to wait up to a timeout.
+   * @param  integer $timeout      Maximal timeout for waiting. Pass 0 in order to wait for ever.
    * @throws TeamSpeak3_Transport_Exception
-   * @return TeamSpeak3_Helper_String   Received string, or null if $waitForEver was false and timeout occurred.
+   * @return TeamSpeak3_Helper_String   Received string, or null if $timeout > 0  and timeout occurred.
    */
-  public function readLine($token = "\n", $waitForEver = true)
+  public function readLine($token = "\n", $timeout = 0)
   {
     $this->connect();
 
@@ -112,8 +112,8 @@ class TeamSpeak3_Transport_TCP extends TeamSpeak3_Transport_Abstract
 
     while(!$line->endsWith($token))
     {
-      $res = $this->waitForReadyRead(0, $waitForEver);
-      if (!$waitForEver && ($res === false))
+      $res = $this->waitForReadyRead(0, $timeout);
+      if (($timeout > 0) && ($res === false))
       {
         return null;
       }

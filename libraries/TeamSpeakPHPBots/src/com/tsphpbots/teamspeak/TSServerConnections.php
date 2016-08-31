@@ -175,8 +175,10 @@ class TSServerConnections {
 
     /**
      * Update the connection manager. Call this periodically.
+     * 
+     * @param int $timeout  Maximal timeout used for polling every connection. Pass 0 in order to wait for ever.
      */
-    public function update() {
+    public function update($timeout = 0) {
         $cntservers = count($this->ts3servers);
         if ($cntservers < 1) {
             return sleep(1);
@@ -191,8 +193,8 @@ class TSServerConnections {
           //Log::debug(self::$TAG, "sending keep-alive command");
           $adapter->request("clientupdate");
         }
-        // call the wait method in no-wait-forever fashion!
-        $adapter->wait(false);
+        // call the wait method with the given timeout
+        $adapter->wait($timeout);
     }
 
     /**
