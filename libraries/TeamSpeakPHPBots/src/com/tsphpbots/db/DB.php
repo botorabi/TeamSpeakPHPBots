@@ -89,12 +89,19 @@ class DB {
     }
 
     /**
-     * Execute the given statement and do an automatic connection recovery if it was lost.
+     * Execute a statement given its creation function and do an automatic connection recovery if it was lost.
+     * The reason for passing a statement creator function instead of a statement is the automatic connection
+     * loss recovery.
      * 
-     * @param Object $statement     PDO statement
-     * @return boolean              Return true if successful, otherwise false.
+     * @param Function $fcnStatementCreator     A function creating a PDO statement
+     * @return Object                           Return the PDO statement if successfull, otherwise null.
      */
-    public static function executeStatement($statement) {
+    public static function executeStatement($fcnStatementCreator) {
+        if (!is_callable($fcnStatementCreator)) {
+            Log::error(self::$TAG, "executeStatement needs a callable function for statement creation!");
+            return null;
+        }
+        $statement = $fcnStatementCreator();
         $statement->execute();
         $res = $statement->errorInfo();
         if (strcmp($res[0], "00000")) {
@@ -104,19 +111,20 @@ class DB {
                 // reconnect to database
                 self::disconnect();
                 self::connect();
+                $statement = $fcnStatementCreator();
                 $statement->execute();
                 $res = $statement->errorInfo();
                 if (strcmp($res[0], "00000")) {
                     Log::warning(self::$TAG, " database errorinfo: " . print_r($res, true));
-                    return false;
+                    return null;
                 }
             }
             else {
                 Log::warning(self::$TAG, "database errorinfo: " . print_r($res, true));
-                return false;
+                return null;
             }
         }
-        return true;
+        return $statement;
     }
 
     /**
@@ -151,26 +159,30 @@ class DB {
         $objects = [];
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            if (!$filter) {
-                $stmt = DB::prepareStatement("SELECT * FROM " . $fulltablename);
-            }
-            else {
-                $closure = "";
-                // define the query parameters
-                foreach($filter as $key => $value) {
-                    if (strlen($closure) > 0) {
-                        $closure .= " AND ";
+            $fcnstmtcreator = function() use ($fulltablename, $filter) {
+                if (!$filter) {
+                    $statement = DB::prepareStatement("SELECT * FROM " . $fulltablename);
+                }
+                else {
+                    $closure = "";
+                    // define the query parameters
+                    foreach($filter as $key => $value) {
+                        if (strlen($closure) > 0) {
+                            $closure .= " AND ";
+                        }
+                        $closure .= $key . " = " . ":" . $key;
                     }
-                    $closure .= $key . " = " . ":" . $key;
+                    $statement = DB::prepareStatement("SELECT * FROM " . $fulltablename . " WHERE " . $closure);
+                    // bind the values
+                    foreach($filter as $key => $value) {
+                        $statement->bindValue(":" . $key, $value);
+                    }
                 }
-                $stmt = DB::prepareStatement("SELECT * FROM " . $fulltablename . " WHERE " . $closure);
-                // bind the values
-                foreach($filter as $key => $value) {
-                    $stmt->bindValue(":" . $key, $value);
-                }
-            }
+                return $statement;
+            };
 
-            if (self::executeStatement($stmt) === false) {
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "getObjects, could not perform database operation!");
                 return null;
             }
@@ -209,9 +221,11 @@ class DB {
         $ids = [];
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            $stmt = DB::prepareStatement("SELECT id FROM " . $fulltablename);
-
-            if (self::executeStatement($stmt) === false) {
+            $fcnstmtcreator = function() use ($fulltablename) {
+                return DB::prepareStatement("SELECT id FROM " . $fulltablename);
+            };
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "getAllObjectIDs, could not perform database operation!");
                 return null;
             }
@@ -244,9 +258,11 @@ class DB {
 
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            $stmt = DB::prepareStatement("SELECT COUNT(*) FROM " . $fulltablename);
-
-            if (self::executeStatement($stmt) === false) {
+            $fcnstmtcreator = function() use ($fulltablename) {
+                return DB::prepareStatement("SELECT COUNT(*) FROM " . $fulltablename);
+            };
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "getObjectCount, could not perform database operation!");
                 return null;
             }
@@ -278,26 +294,31 @@ class DB {
 
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            $sql = "INSERT INTO " . $fulltablename . "(";
-            $params = "";
-            $values = "";
-            foreach($fields as $key => $value) {
-                if (strlen($params) > 0) {
-                    $params .= ",";
-                    $values .= ",";
-                }
-                $params .= $key;
-                $values .= ":" . $key;
-            }
-            $sql .= $params . ") VALUES(" . $values . ")";
-            $stmt = DB::prepareStatement($sql); 
             
-            // bind the values
-            foreach($fields as $key => $value) {
-                $stmt->bindValue(":" . $key, self::encodeFieldValue($value));
-            }
+            $fcnstmtcreator = function() use ($fulltablename, $fields) {            
+                $sql = "INSERT INTO " . $fulltablename . "(";
+                $params = "";
+                $values = "";
+                foreach($fields as $key => $value) {
+                    if (strlen($params) > 0) {
+                        $params .= ",";
+                        $values .= ",";
+                    }
+                    $params .= $key;
+                    $values .= ":" . $key;
+                }
+                $sql .= $params . ") VALUES(" . $values . ")";
+                $statement = DB::prepareStatement($sql); 
 
-            if (self::executeStatement($stmt) === false) {
+                // bind the values
+                foreach($fields as $key => $value) {
+                    $statement->bindValue(":" . $key, self::encodeFieldValue($value));
+                }
+                return $statement;
+            };
+
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "createObject, could not perform database operation!");
                 return null;
             }
@@ -330,22 +351,25 @@ class DB {
  
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            $sql = "UPDATE " . $fulltablename . " SET ";
-            $params = "";
-            foreach($fields as $key => $value) {
-                if (strlen($params) > 0) {
-                    $params .= ",";
+            $fcnstmtcreator = function() use ($fulltablename, $id, $fields) {
+                $sql = "UPDATE " . $fulltablename . " SET ";
+                $params = "";
+                foreach($fields as $key => $value) {
+                    if (strlen($params) > 0) {
+                        $params .= ",";
+                    }
+                    $params .= $key . " = " . ":" . $key;
                 }
-                $params .= $key . " = " . ":" . $key;
-            }
-            $sql .= $params . " WHERE id = " . $id;
-            $stmt = DB::prepareStatement($sql); 
-            // bind the values
-            foreach($fields as $key => $value) {
-                $stmt->bindValue(":" . $key, self::encodeFieldValue($value));
-            }
-
-            if (self::executeStatement($stmt) === false) {
+                $sql .= $params . " WHERE id = " . $id;
+                $statement = DB::prepareStatement($sql); 
+                // bind the values
+                foreach($fields as $key => $value) {
+                    $statement->bindValue(":" . $key, self::encodeFieldValue($value));
+                }
+                return $statement;
+            };
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "updateObject, could not perform database operation!");
                 return false;
             }
@@ -373,10 +397,12 @@ class DB {
 
         try {
             $fulltablename = Config::getDB("dbName") . "." . $tableName;
-            $sql = "DELETE FROM " . $fulltablename . " WHERE id=" . $id;
-            $stmt = DB::prepareStatement($sql); 
-
-            if (self::executeStatement($stmt) === false) {
+            $fcnstmtcreator = function() use ($fulltablename, $id) {
+                $sql = "DELETE FROM " . $fulltablename . " WHERE id=" . $id;
+                return DB::prepareStatement($sql);
+            };
+            $stmt = self::executeStatement($fcnstmtcreator);
+            if (is_null($stmt)) {
                 Log::warning(self::$TAG, "deleteObject, could not perform database operation!");
                 return false;
             }
