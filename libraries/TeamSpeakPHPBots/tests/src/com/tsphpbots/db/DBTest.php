@@ -62,10 +62,11 @@ class DBTest extends \PHPUnit_Framework_TestCase {
 
         try {
             $sql = "SELECT * FROM user";
-            $stm = DB::prepareStatement($sql);
-            $this->assertTrue($stm != null, "Creating an SQL statement failed!");
+            $stm = function() use($sql) {
+                return DB::prepareStatement($sql);
+            };
             $res = DB::executeStatement($stm);
-            $this->assertTrue($res === true, "Could not execute statement!");           
+            $this->assertTrue(!is_null($res), "Could not execute statement!");           
             
         } catch (Exception $e) {
             $this->assertTrue(false, "Could not prepare SQL statement! Reason: " . $e . getMessage());
