@@ -230,7 +230,8 @@ class TSServerConnections {
     /**
      * Callback method for 'serverqueryWaitTimeout' signals.
      *
-     * @param  integer $seconds
+     * @param integer $seconds
+     * @param TeamSpeak3_Adapter_ServerQuery $adapter
      * @return void
      */
     public function onTimeout($seconds, \TeamSpeak3_Adapter_ServerQuery $adapter) {
