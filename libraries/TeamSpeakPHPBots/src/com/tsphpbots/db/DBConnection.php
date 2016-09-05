@@ -95,12 +95,23 @@ class DBConnection {
     }
 
     /**
-     * Get the PDO database handler.
+     * Establish a database connection, this is used for automatic connection loss recovery.
      * 
-     * @return Object PDO handler
+     * @param string $url           DB connection URL
+     * @param string $userName      DB user name
+     * @param string $userPW        DB user password
+     * @return Object               Database handler if successful, otherwise null.
      */
-    public function getDBHandler() {
-        return $this->dbh;
+    protected function connectDB($url, $userName, $userPW) {
+        $options = [PDO::ATTR_PERSISTENT => true];
+        try {
+            $dbh = new PDO($url, $userName, $userPW, $options);
+            return $dbh;
+        }
+        catch(PDOException $e) {
+            Log::error(self::$TAG, "Cannot connect the database, reason: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -170,25 +181,5 @@ class DBConnection {
             throw new \Exception("Cannot get last inserted ID, no database connection exists!");
         }
         return $this->dbh->lastInsertId();
-    }
-
-    /**
-     * Establish a database connection, this is used for automatic connection loss recovery.
-     * 
-     * @param string $url           DB connection URL
-     * @param string $userName      DB user name
-     * @param string $userPW        DB user password
-     * @return Object               Database handler if successful, otherwise null.
-     */
-    protected function connectDB($url, $userName, $userPW) {
-        $options = [PDO::ATTR_PERSISTENT => true];
-        try {
-            $dbh = new PDO($url, $userName, $userPW, $options);
-            return $dbh;
-        }
-        catch(PDOException $e) {
-            Log::error(self::$TAG, "Cannot connect the database, reason: " . $e->getMessage());
-            return null;
-        }
     }
 }
