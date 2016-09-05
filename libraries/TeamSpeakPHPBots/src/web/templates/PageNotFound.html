@@ -5,7 +5,7 @@
 					var t = $("#counterId").html();
 					t -= 1;
 					if (t < 0) {
-						window.location.href = "/?page=Main";
+						window.location.href = "?page=Main";
 					}
 					else {
 						$("#counterId").html(t);
@@ -16,7 +16,7 @@
 		<div id="maincontentId" class="maincontent">
 			<span>
 				The requested page does not exist. You will be redirected to the main page.<br>
-				If redirecting does not work then click <a href="/?page=Main">here.</a>
+				If redirecting does not work then click <a href="?page=Main">here.</a>
 			</span>
 			<div id="counterId" style="text-align: center; font-weight: bold; font-size: 2.5em; padding: 30px;">5</div>
 		</div>	
