@@ -45,7 +45,7 @@ class DB {
         }
 
         self::$dbConnection = new DBConnection();
-        $dbh = self::$dbConnection->connect(Config::getDB("host"), Config::getDB("port"), Config::getDB("dbName"), Config::getDB("userName"), Config::getDB("password"));
+        $dbh = self::$dbConnection->connect(Config::getDB("host"), Config::getDB("hostPort"), Config::getDB("dbName"), Config::getDB("userName"), Config::getDB("password"));
 
         if (is_null($dbh)) {
             Log::error(self::$TAG, "Could not establish a connection to database!");
