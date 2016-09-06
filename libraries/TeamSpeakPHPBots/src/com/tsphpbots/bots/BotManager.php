@@ -91,8 +91,13 @@ class BotManager {
      */
     public function update() {
         foreach($this->bots as $bot) {
-            //Log::debug(self::$TAG, "update bot: " . $stream . ", bot type: " . $bot->getType());
-            $bot->update();
+            try {
+                $bot->update();
+            }
+            catch(\Exception $e) {
+                Log::error(self::$TAG, "error occured while updating the bot: " . $bot->getName());
+                Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());                
+            }
         }
         // calculate the timeout for polling the server connections
         if ($this->numConnections === 0) {
@@ -113,7 +118,13 @@ class BotManager {
         Log::debug(self::$TAG, "shutting down the bot manager");
 
         foreach($this->bots as $bot) {
-            $bot->onShutdown();
+            try {
+                $bot->onShutdown();
+            }
+            catch(\Exception $e) {
+                Log::error(self::$TAG, "error occured while processing bot shutdown: " . $bot->getName());
+                Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());
+            }
         }
 
         $this->bots = [];
@@ -367,7 +378,13 @@ class BotManager {
         // notify now all bots
         foreach($this->bots as $bot) {
             if ($bot->getServerStream() === $stream) {
-                $bot->onServerEvent($event, $host);
+                try {
+                    $bot->onServerEvent($event, $host);
+                }
+                catch(\Exception $e) {
+                    Log::error(self::$TAG, "error occured while processing ts server event in bot: " . $bot->getName());
+                    Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());
+                }
                 break;
             }
         }
@@ -386,7 +403,13 @@ class BotManager {
         Log::verbose(self::$TAG, "notify bot update: " . $botType . ", " . $botId);
         $bot = $this->findBot($botType, $botId);
         if ($bot) {
-            $bot->onConfigUpdate();
+            try {
+                $bot->onConfigUpdate();
+            }
+            catch(\Exception $e) {
+                Log::error(self::$TAG, "error occured while processing config update in bot: " . $bot->getName());
+                Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());
+            }
             return true;
         }
         return false;
@@ -453,7 +476,13 @@ class BotManager {
         Log::verbose(self::$TAG, "notify bot about a message: " . $botType . ", " . $botId);
         $bot = $this->findBot($botType, $botId);
         if ($bot) {
-            $bot->onReceivedMessage($text);
+            try {
+                $bot->onReceivedMessage($text);
+            }
+            catch(\Exception $e) {
+                Log::error(self::$TAG, "error occured while processing received message in bot: " . $bot->getName());
+                Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());
+            }
             return true;
         }
         return false;
