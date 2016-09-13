@@ -142,7 +142,7 @@ class DBConnection {
             return null;
         }
         $statement = $fcnStatementCreator();
-        $statement->execute();
+        @$statement->execute();
         $res = $statement->errorInfo();
         if (strcmp($res[0], "00000")) {
             // check if the server connection was lost, if so try to recover
@@ -152,6 +152,7 @@ class DBConnection {
                 $this->disconnect();
                 $this->dbh = $this->connectDB($this->url, $this->userName, $this->userPW);
                 if (is_null($this->dbh)) {
+                    Log::warning(self::$TAG, " could not recover the connection to database!");
                     return null;
                 }
                 $statement = $fcnStatementCreator();
@@ -161,6 +162,7 @@ class DBConnection {
                     Log::warning(self::$TAG, " database errorinfo: " . print_r($res, true));
                     return null;
                 }
+                Log::debug(self::$TAG, " connection to database succesfully recovered");
             }
             else {
                 Log::warning(self::$TAG, "database errorinfo: " . print_r($res, true));
