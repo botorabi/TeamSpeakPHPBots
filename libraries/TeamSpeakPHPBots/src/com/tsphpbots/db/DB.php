@@ -8,10 +8,10 @@
  */
 
 namespace com\tsphpbots\db;
+use com\tsphpbots\db\DBConnection;
 use com\tsphpbots\config\Config;
 use com\tsphpbots\utils\Log;
-use PDO;
-use PDOException;
+
 
 /**
  * Database handler providing low-level functionality for accessing data.
@@ -29,9 +29,9 @@ class DB {
     protected static $TAG = "DB";
 
     /**
-     * @var PDO Database object
+     * @var DBConnection Database connection handler
      */
-    protected static $dbh = null;
+    protected static $dbConnection = null;
 
     /**
      * Try to connect the database with the access data provided in "config/Configuration.php".
@@ -40,38 +40,33 @@ class DB {
      * @return  true if the connection was successful, otherwise false
      */
     public static function connect() {
-
-        if (self::$dbh) {
+        if (!is_null(self::$dbConnection)) {
             return true;
         }
 
-        $options = [PDO::ATTR_PERSISTENT => true];
-        $url  = "mysql:host=" . Config::getDB("host") . ";";
-        $url .= "port=" .       Config::getDB("port") . ";";
-        $url .= "dbname=" .     Config::getDB("dbName") . ";";
-        $url .= "charset=utf8";
+        self::$dbConnection = new DBConnection();
+        $dbh = self::$dbConnection->connect(Config::getDB("host"), Config::getDB("hostPort"), Config::getDB("dbName"), Config::getDB("userName"), Config::getDB("password"));
 
-        try {
-            self::$dbh = new PDO($url, Config::getDB("userName"), Config::getDB("password"), $options);
-        }
-        catch(PDOException $e) {
-            Log::error(self::$TAG, "Cannot connect the database, reason: " . $e->getMessage());
+        if (is_null($dbh)) {
+            Log::error(self::$TAG, "Could not establish a connection to database!");
+            self::$dbConnection = null;
             return false;
         }
         return true;
     }
 
     /**
-     * Try to disconnect from database server.
-     * 
-     * NOTE: The actual disconnect happens when all references of retrieved data
-     * are no longer alive (see http://php.net/manual/de/pdo.connections.php).
+     * Try to disconnect from database server, see the comments on DBConnection::disconnect.
      * 
      * @return       true if successful, otherwise false
      */
     public static function disconnect() {
-        self::$dbh = null;
-        return true;
+        if (is_null(self::$dbConnection)) {
+            return false;
+        }
+        $res = self::$dbConnection->disconnect();
+        self::$dbConnection = null;
+        return $res;
     }
 
     /**
@@ -82,10 +77,7 @@ class DB {
      * @throws          Exception or PDOException
      */
     public static function prepareStatement($sql) {
-        if (self::$dbh == null) {
-            throw new \Exception("Cannot prepare SQL, no database connection exists!");
-        }
-        return self::$dbh->prepare($sql); 
+        return self::$dbConnection->prepareStatement($sql); 
     }
 
     /**
@@ -97,34 +89,7 @@ class DB {
      * @return Object                           Return the PDO statement if successfull, otherwise null.
      */
     public static function executeStatement($fcnStatementCreator) {
-        if (!is_callable($fcnStatementCreator)) {
-            Log::error(self::$TAG, "executeStatement needs a callable function for statement creation!");
-            return null;
-        }
-        $statement = $fcnStatementCreator();
-        $statement->execute();
-        $res = $statement->errorInfo();
-        if (strcmp($res[0], "00000")) {
-            // check if the server connection was lost, if so try to recover
-            if ((strcmp($res[1], "2006") === 0 ) || (strcmp($res[1], "2013") === 0)) {
-                Log::debug(self::$TAG, "lost connection to database, try to reconnect");
-                // reconnect to database
-                self::disconnect();
-                self::connect();
-                $statement = $fcnStatementCreator();
-                $statement->execute();
-                $res = $statement->errorInfo();
-                if (strcmp($res[0], "00000")) {
-                    Log::warning(self::$TAG, " database errorinfo: " . print_r($res, true));
-                    return null;
-                }
-            }
-            else {
-                Log::warning(self::$TAG, "database errorinfo: " . print_r($res, true));
-                return null;
-            }
-        }
-        return $statement;
+        return self::$dbConnection->executeStatement($fcnStatementCreator);
     }
 
     /**
@@ -134,10 +99,7 @@ class DB {
      * @throws  Exception or PDOException
      */
     public static function getLastInsertId() {
-        if (self::$dbh == null) {
-            throw new \Exception("Cannot get last inserted ID, no database connection exists!");
-        }
-        return self::$dbh->lastInsertId();
+        return self::$dbConnection->getLastInsertId();
     }
 
     /**
