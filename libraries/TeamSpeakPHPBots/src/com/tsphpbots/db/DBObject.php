@@ -11,6 +11,32 @@ namespace com\tsphpbots\db;
 use com\tsphpbots\utils\Log;
 use com\tsphpbots\db\DB;
 
+
+/**
+ * Common interface databank objects.
+ * 
+ * @package   com\tsphpbots\db
+ * @created   25th September 2016
+ * @author    Botorabi
+ */
+interface IDBObject {
+
+    /**
+     * Return the table name. This must be implemented by derived class.
+     * 
+     * @return string   Database table name
+     */
+    public static function getTableName();
+
+    /**
+     * Implement this method by derived classes in order to define the object
+     * fields. The impelementation should fill the $objectFields array with
+     * field names and their initial values.
+     */
+    public function setupFields();
+}
+
+
 /**
  * Base class of all databank objects. This class implements the basic
  * functionality for accessing the object data in a databank.
@@ -19,8 +45,8 @@ use com\tsphpbots\db\DB;
  * @created   26th June 2016
  * @author    Botorabi
  */
-abstract class DBObject {
-   
+abstract class DBObject implements IDBObject {
+
     /**
      * @var string Class tag for logging
      */
@@ -43,20 +69,6 @@ abstract class DBObject {
             $this->loadObject($id);
         }
     }
-
-    /**
-     * Return the table name. This must be implemented by derived class.
-     * 
-     * @return string   Database table name
-     */
-    abstract public static function getTableName();
-
-    /**
-     * Implement this method by derived classes in order to define the object
-     * fields. The impelementation should fill the $objectFields array with
-     * field names and their initial values.
-     */
-    abstract public function setupFields();
 
     /**
      * Get the object fields.
