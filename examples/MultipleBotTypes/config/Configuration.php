@@ -45,6 +45,8 @@ abstract class Configuration {
     public static $TSPHPBOT_CONFIG_WEB_INTERFACE = [
         // Web service version.
         "version"        => "0.1.0",
+        // Web page's title
+        "title"          => "TeamSpeak Bot Server",
         // Timeout for automatic logout while inactive (in minutes). Set to 0 for no timout.
         "sessionTimeout" => 30,
         // App's main source directory. This path is relative to executing path (you should see the directory structure 'com/examples/...' there).
