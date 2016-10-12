@@ -193,8 +193,13 @@ class TSServerConnections {
           //Log::debug(self::$TAG, "sending keep-alive command");
           $adapter->request("clientupdate");
         }
-        // call the wait method with the given timeout
-        $adapter->wait($timeout);
+        // pump the events of ts server
+        $fetchcount = 10;
+        while($fetchcount-- > 0) {
+            if (is_null($adapter->wait($timeout))) {
+                break;
+            }
+        }
     }
 
     /**
