@@ -106,18 +106,13 @@ class TSServerConnections {
         }
 
         try {
-            $readtimeout = (int)(Config::getTS3ServerQuery("pollInterval") * 1000);
-            if ($readtimeout < 50) {
-                Log::warning(self::$TAG, " config 'pollInterval': consider a minimum timeout of 50 milliseconds!");
-                $readtimeout = 50;
-            }
-            Log::debug(self::$TAG, "connecting the teamspeak server (read timeout: " . $readtimeout . " msec)...");
+            Log::debug(self::$TAG, "connecting the teamspeak server ...");
             $querytext = "serverquery://".  Config::getTS3ServerQuery("userName") . ":" .
                                             Config::getTS3ServerQuery("password") . "@" . 
                                             Config::getTS3ServerQuery("host") . ":" .
                                             Config::getTS3ServerQuery("hostPort") . "/?server_port=" .
                                             Config::getTS3ServerQuery("vServerPort") .
-                                            "&blocking=0&readtimeout=" . $readtimeout .
+                                            "&blocking=0" .
                                             "&nickname=" . $nick;
 
             $server = \TeamSpeak3::factory($querytext);
