@@ -30,11 +30,6 @@ class TSServerConnections {
      * @var Object  TS3 server objects
      */
     protected $ts3servers = [];
-    
-    /**
-     * @var int Current TS3 server connection for polling
-     */
-    protected $currTs3server = 0;
 
     /**
      * @var int  Notification registration flag for "server"
@@ -106,18 +101,13 @@ class TSServerConnections {
         }
 
         try {
-            $readtimeout = (int)(Config::getTS3ServerQuery("pollInterval") * 1000);
-            if ($readtimeout < 50) {
-                Log::warning(self::$TAG, " config 'pollInterval': consider a minimum timeout of 50 milliseconds!");
-                $readtimeout = 50;
-            }
-            Log::debug(self::$TAG, "connecting the teamspeak server (read timeout: " . $readtimeout . " msec)...");
+            Log::debug(self::$TAG, "connecting the teamspeak server ...");
             $querytext = "serverquery://".  Config::getTS3ServerQuery("userName") . ":" .
                                             Config::getTS3ServerQuery("password") . "@" . 
                                             Config::getTS3ServerQuery("host") . ":" .
                                             Config::getTS3ServerQuery("hostPort") . "/?server_port=" .
                                             Config::getTS3ServerQuery("vServerPort") .
-                                            "&blocking=0&readtimeout=" . $readtimeout .
+                                            "&blocking=0" .
                                             "&nickname=" . $nick;
 
             $server = \TeamSpeak3::factory($querytext);
@@ -179,22 +169,29 @@ class TSServerConnections {
      * @param int $timeout  Maximal timeout used for polling every connection. Pass 0 in order to wait for ever.
      */
     public function update($timeout = 0) {
-        $cntservers = count($this->ts3servers);
-        if ($cntservers < 1) {
-            return sleep(1);
+        foreach($this->ts3servers as $srv) {
+            $adapter = $srv["server"]->getAdapter();
+            if($adapter->getQueryLastTimestamp() < time() - 300) {
+              //Log::debug(self::$TAG, "sending keep-alive command");
+              $adapter->request("clientupdate");
+            }
+            // pump the events of ts server
+            $fetchcount = 10;
+            while($fetchcount-- > 0) {
+                if (is_null($adapter->wait($timeout))) {
+                    break;
+                }
+            }
         }
-        $this->currTs3server++;
-        if ($this->currTs3server >= $cntservers) {
-            $this->currTs3server = 0;
-        }
-        $adapter = $this->ts3servers[$this->currTs3server]["server"]->getAdapter();
+    }
 
-        if($adapter->getQueryLastTimestamp() < time() - 300) {
-          //Log::debug(self::$TAG, "sending keep-alive command");
-          $adapter->request("clientupdate");
-        }
-        // call the wait method with the given timeout
-        $adapter->wait($timeout);
+    /**
+     * Get the count of TeamSpeak server connections.
+     * 
+     * @return int  Count of TeamSpeak connections
+     */
+    public function getCountTsConnections() {
+        return count($this->ts3servers);
     }
 
     /**
@@ -203,7 +200,7 @@ class TSServerConnections {
      * @param Object $stream    Connection stream
      * @return array            The TS3 server connection entry, null if no entry exists with that stream.
      */
-    protected function getTs3Server($stream) {
+    protected function getTsServer($stream) {
         foreach($this->ts3servers as $srv) {
             if ($srv["stream"] === $stream) {
                 return $srv;
@@ -260,7 +257,7 @@ class TSServerConnections {
      */
     public function onEvent(\TeamSpeak3_Adapter_ServerQuery_Event $event, \TeamSpeak3_Node_Host $host) {
         $stream = $host->getParent()->getTransport()->getStream();
-        $srv = $this->getTs3Server($stream);
+        $srv = $this->getTsServer($stream);
         if (is_null($srv)) {
             Log::warning(self::$TAG, "cannot notify about server event, stream " . $stream . " was not found!");
         }

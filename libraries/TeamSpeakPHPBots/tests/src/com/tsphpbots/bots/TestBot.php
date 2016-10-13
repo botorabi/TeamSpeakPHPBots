@@ -120,7 +120,7 @@ class TestBot extends BotBase {
     /**
      * Update the bot.
      */
-    public function update() {}
+    public function update($deltaTime) {}
 
     /**
      * This method is called whenever a server event was received.

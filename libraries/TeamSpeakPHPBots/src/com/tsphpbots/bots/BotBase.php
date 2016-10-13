@@ -81,8 +81,10 @@ interface IBotBase  {
 
     /**
      * Update the bot.
+     * 
+     * @param $deltaTime  Past time in milliseconds since last update
      */
-    public function update();
+    public function update($deltaTime);
 }
 
 

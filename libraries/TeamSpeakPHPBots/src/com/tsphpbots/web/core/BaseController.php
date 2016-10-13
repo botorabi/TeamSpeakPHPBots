@@ -58,6 +58,10 @@ abstract class BaseController {
      */
     protected $dirLibs          = "";
     /**
+     * @var string Template property <!--webTitle-->
+     */
+    protected $webTitle         = "";
+    /**
      * @var string Template property <!--webVersion-->
      */
     protected $webVersion       = "";
@@ -80,6 +84,7 @@ abstract class BaseController {
         $this->dirJs            = $this->dirBase . Config::getWebInterface("dirJs");
         $this->dirLibs          = $this->dirBase . Config::getWebInterface("dirLibs");
         $this->webVersion       = Config::getWebInterface("version");
+        $this->webTitle         = Config::getWebInterface("title");
         $this->frameworkVersion = Config::getFrameworkVersion();
     }
 
@@ -200,6 +205,7 @@ abstract class BaseController {
 
         // replace the standard props
         $this->replaceProperty($content, "webVersion",       $this->webVersion);
+        $this->replaceProperty($content, "webTitle",         $this->webTitle);
         $this->replaceProperty($content, "frameworkVersion", $this->frameworkVersion);
         $this->replaceProperty($content, "dirTemplates",     $this->dirTemplates);
         $this->replaceProperty($content, "dirImages",        $this->dirImages);

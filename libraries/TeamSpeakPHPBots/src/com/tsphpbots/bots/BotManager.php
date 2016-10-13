@@ -38,6 +38,11 @@ class BotManager {
     protected $bots = [];
 
     /**
+     * @var int Timestamp of last update
+     */
+    protected $lastUpdateTime = 0;
+
+    /**
      * @var Object  TS3 server connection manager
      */
     protected $ts3Connection = null;
@@ -85,29 +90,39 @@ class BotManager {
     }
 
     /**
-     * Update the application.
+     * Update all bots and TeamSpeak connections.
      * 
      * @param $stream  The server connection stream
      */
     public function update() {
+        // poll interval in milliseconds
+        $tpoll = (Config::getTS3ServerQuery("pollInterval") * 1000.0);
+        // calculate the delta time since last update in milliseconds
+        $currtime = (int)(microtime(true) * 1000.0);
+        $deltatime = ($this->lastUpdateTime !== 0) ? ($currtime - $this->lastUpdateTime) : $tpoll;
+        $this->lastUpdateTime = $currtime;
+        //Log::verbose(self::$TAG, "past time: $deltatime");
         foreach($this->bots as $bot) {
             try {
-                $bot->update();
+                $bot->update($deltatime);
             }
             catch(\Exception $e) {
                 Log::error(self::$TAG, "error occured while updating the bot: " . $bot->getName());
                 Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());                
             }
         }
+
         // calculate the timeout for polling the server connections
         if ($this->numConnections === 0) {
-            $timeout = 1000;
+            $timeout = $tpoll;
+            // if no server connections exist then idle the poll time
+            usleep($tpoll * 1000);
         }
         else {
-            $timeout = (Config::getTS3ServerQuery("pollInterval") * 1000.0) / $this->numConnections;
+            $timeout = $tpoll / $this->numConnections;
         }
-        // limit the timout to a minimum of 100 ms
-        $timeout = $timeout < 100 ? 100 : $timeout;       
+        // limit the timout to a minimum of 50 ms
+        $timeout = $timeout < 50 ? 50 : $timeout;
         $this->ts3Connection->update($timeout);
     }
 
@@ -128,6 +143,7 @@ class BotManager {
         }
 
         $this->bots = [];
+        $this->lastUpdateTime = 0;
         $this->ts3Connection->shutdown();
         $this->ts3Connection = null;
         $this->ts3ServerConnections = [];
