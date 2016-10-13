@@ -295,7 +295,7 @@ class ChatBot extends BotBase {
      *
      * @implements base class method
      */
-    public function update() {
+    public function update($deltaTime) {
         // skip updating if the bot is not active
         if ($this->model->active == 0) {
             return;
