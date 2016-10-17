@@ -4,9 +4,9 @@
     License: MIT License (MIT)
     Read the LICENSE text in main directory for more details.
 
-    Current Version: 0.9.5
-    First Created: 2st August 2016
-    Author:  Botorabi (botorabi AT gmx DOT net)
+    Current Version:   0.9.5
+    First Created:     2st August 2016
+    Author:            Botorabi (botorabi AT gmx DOT net)
 
 # TeamSpeakPHPBots
 TeamSpeakPHPBots is a lightweight framework for developing TeamSpeak bots in PHP.
