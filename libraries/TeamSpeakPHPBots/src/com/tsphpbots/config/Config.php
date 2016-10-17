@@ -25,7 +25,7 @@ abstract class Config {
      *
      * @var string  The framework version
      */
-    protected static $FRAMEWORK_VERSION = "0.9.4";
+    protected static $FRAMEWORK_VERSION = "0.9.5";
 
     /**
      * Given an array and a token name return its value if it exists.

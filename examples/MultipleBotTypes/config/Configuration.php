@@ -44,7 +44,7 @@ abstract class Configuration {
     //! Web interface related info
     public static $TSPHPBOT_CONFIG_WEB_INTERFACE = [
         // Web service version.
-        "version"        => "0.1.0",
+        "version"        => "0.9.5",
         // Web page's title
         "title"          => "TeamSpeak Bot Server",
         // Timeout for automatic logout while inactive (in minutes). Set to 0 for no timout.
@@ -65,7 +65,7 @@ abstract class Configuration {
     //! Bot service related config
     public static  $TSPHPBOT_CONFIG_BOT_SERVICE = [
         // Bot serivce version
-        "version"       => "0.1.0",
+        "version"       => "0.9.5",
         // Bot service query IP
         "host"          => "127.0.0.1",
         // Bot service query port
