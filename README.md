@@ -8,8 +8,21 @@
     First Created:     2st August 2016
     Author:            Botorabi (botorabi AT gmx DOT net)
 
+
 # TeamSpeakPHPBots
-TeamSpeakPHPBots is a lightweight framework for developing TeamSpeak bots in PHP.
+
+TeamSpeakPHPBots is a lightweight framework for developing TeamSpeak Bots in PHP.
+The framework is used in a German multi-gaming community and builds the ground for currently over 30 Bot instances of various types.
+Its features and stability were enhanced over the time by observing and reflecting the demands and constraints of a real field environment with over 200 simultaneously connected users at peak times.
+
+Here are some of major services provided by the mentioned gaming community Bots:
+
+- Dynamic TeamSpeak Channel Management: automatic channel creation / deletion depending on user load
+
+- Unified Chat System: integrated Telegram, Web Chat, and TeamSpeak into one single chat system consisting of multiple rooms with respect to individual authentications and permissions
+
+- Integration with Community Forum: synchronized authentication and permissions with [Woltlab's Burning Board]
+
 
 # Introduction
 
@@ -42,4 +55,5 @@ See the accompanying **examples** directory which demonstrates how to use this f
 
 [TeamSpeak3 PHP Framework]: https://github.com/planetteamspeak/ts3phpframework
 
+[Woltlab's Burning Board]: https://www.woltlab.com
 
