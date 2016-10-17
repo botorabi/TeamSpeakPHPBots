@@ -4,7 +4,8 @@
     License: MIT License (MIT)
     Read the LICENSE text in main directory for more details.
 
-    Created: 2st August 2016
+    Current Version: 0.9.5
+    First Created: 2st August 2016
     Author:  Botorabi (botorabi AT gmx DOT net)
 
 # TeamSpeakPHPBots

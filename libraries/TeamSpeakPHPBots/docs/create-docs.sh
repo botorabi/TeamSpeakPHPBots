@@ -9,10 +9,17 @@
 # Created: 1st August 2016
 # Author:  Botorabi (botorabi AT gmx DOT net)
 
+if [ "$#" -ne 1 ]; then
+  echo "  "
+  echo "*** Cannot create API documentation!"
+  echo "    Use: create-docs.sh <API version number>"
+  exit
+fi
 
 # Shell script for creating API docs
 
-PHP_BIN=php
-PHP_DOC=phpDocumentor
+PHP_DOC=../../../vendor/phpdocumentor/phpdocumentor/bin/phpdoc
+DOC_TITLE_BASE='TeamSpeakPHPBots - Version '
+DOC_TITLE="$DOC_TITLE_BASE $1"
 
-$PHP_BIN $PHP_DOC --template="responsive-twig" -d ../src -t ./api
+$PHP_DOC run --template="responsive-twig" --title="$DOC_TITLE" -d ../src -t ./api-$1
