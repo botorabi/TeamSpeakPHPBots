@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2016 by Botorabi. All rights reserved.
+ * Copyright (c) 2016-2017 by Botorabi. All rights reserved.
  * https://github.com/botorabi/TeamSpeakPHPBots
  * 
  * License: MIT License (MIT), read the LICENSE text in
@@ -25,7 +25,7 @@ abstract class Config {
      *
      * @var string  The framework version
      */
-    protected static $FRAMEWORK_VERSION = "0.9.5";
+    protected static $FRAMEWORK_VERSION = "1.0.0";
 
     /**
      * Given an array and a token name return its value if it exists.
