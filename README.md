@@ -1,10 +1,10 @@
-    Copyright (c) 2016 by Botorabi. All rights reserved.
+    Copyright (c) 2016-2017 by Botorabi. All rights reserved.
     https://github.com/botorabi/TeamSpeakPHPBots
 
     License: MIT License (MIT)
     Read the LICENSE text in main directory for more details.
 
-    Current Version:   0.9.5
+    Current Version:   1.0.0
     First Created:     2st August 2016
     Author:            Botorabi (botorabi AT gmx DOT net)
 
