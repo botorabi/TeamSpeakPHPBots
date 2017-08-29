@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2016 by Botorabi. All rights reserved.
+ * Copyright (c) 2016-2017 by Botorabi. All rights reserved.
  * https://github.com/botorabi/TeamSpeakPHPBots
  * 
  * License: MIT License (MIT), read the LICENSE text in
