@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2016-2017 by Botorabi. All rights reserved.
+ * Copyright (c) 2016-2018 by Botorabi. All rights reserved.
  * https://github.com/botorabi/TeamSpeakPHPBots
  * 
  * License: MIT License (MIT), read the LICENSE text in
@@ -71,7 +71,6 @@ class BotManager {
      * Construct the bot manager.
      */
     public function __construct() {
-        $this->ts3Connection = new TSServerConnections();
     }
 
     /**
@@ -80,10 +79,15 @@ class BotManager {
      * @return boolean      Return true if bot manager was successfully initialized, otherwise false.
      */
     public function initialize() {
+        Log::debug(self::$TAG, "initializing the bot manager");
+
+        $this->ts3Connection = new TSServerConnections();
+
+        Log::debug(self::$TAG, "  creating a connection to teamspeak server...");
         // create a default server connection
         $this->ts3DefaultConnection = $this->createServerConnection(Config::getTS3ServerQuery("nickName"));
         if (is_null($this->ts3DefaultConnection)) {
-            Log::error(self::$TAG, "could not initialize bot manager, no teamspeak server connection!");
+            Log::error(self::$TAG, "  could not initialize bot manager, no teamspeak server connection!");
             return false;
         }
         return true;
@@ -123,7 +127,19 @@ class BotManager {
         }
         // limit the timout to a minimum of 50 ms
         $timeout = $timeout < 50 ? 50 : $timeout;
-        $this->ts3Connection->update($timeout);
+        try {
+            $this->ts3Connection->update($timeout);
+        }
+        catch(\Exception $e) {
+            Log::error(self::$TAG, "an exception occured while communicating to server");
+            Log::error(self::$TAG, " backtrace\n" . $e->getTraceAsString());
+
+            $this->shutdown();
+            Log::error(self::$TAG, " trying to reinitialize the connection in 5 seconds...");
+            usleep(5000);
+            $this->initialize();
+            $this->loadBots();
+        }
     }
 
     /**

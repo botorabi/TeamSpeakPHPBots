@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2016-2017 by Botorabi. All rights reserved.
+ * Copyright (c) 2016-2018 by Botorabi. All rights reserved.
  * https://github.com/botorabi/TeamSpeakPHPBots
  * 
  * License: MIT License (MIT), read the LICENSE text in
@@ -22,13 +22,14 @@ abstract class Configuration {
 
     //! TS3 Server Query related config
     public static  $TSPHPBOT_CONFIG_TS3SERVER_QUERY = [
-        "host"          => "localhost",
-        "userName"      => "serveradmin",       // TODO put your TS3 user name here
-        "password"      => "exffRAo3",          // TODO put your TS3 user password here
-        "hostPort"      => 10011,
-        "vServerPort"   => 9987,
-        "pollInterval"  => 1,                   // intervall of bot control steps in seconds
-        "nickName"      => "TS3 PHP Bot"        // this is the name displayed in TS3 clients
+        "host"              => "localhost",
+        "userName"          => "serveradmin",       // TODO put your TS3 user name here
+        "password"          => "exffRAo3",          // TODO put your TS3 user password here
+        "hostPort"          => 10011,
+        "vServerPort"       => 9987,
+        "pollInterval"      => 1,                   // intervall of bot control steps in seconds
+        "keepAliveInterval" => 120,                 // server connection keep-alive interval in seconds
+        "nickName"          => "TS3 PHP Bot"        // this is the name displayed in TS3 clients
     ];
 
     //! Databank account info (MySQL)
