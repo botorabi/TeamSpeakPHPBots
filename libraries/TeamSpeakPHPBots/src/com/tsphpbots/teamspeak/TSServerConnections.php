@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2016-2017 by Botorabi. All rights reserved.
+ * Copyright (c) 2016-2018 by Botorabi. All rights reserved.
  * https://github.com/botorabi/TeamSpeakPHPBots
  * 
  * License: MIT License (MIT), read the LICENSE text in
@@ -30,6 +30,11 @@ class TSServerConnections {
      * @var Object  TS3 server objects
      */
     protected $ts3servers = [];
+
+    /**
+     * @var int Server connection's keep-alive-interval in seconds
+     */
+    protected $keepAliveInterval = 60;
 
     /**
      * @var int  Notification registration flag for "server"
@@ -78,6 +83,11 @@ class TSServerConnections {
         \TeamSpeak3_Helper_Signal::getInstance()->subscribe("notifyLogin",               array($this, "onLogin"));
         \TeamSpeak3_Helper_Signal::getInstance()->subscribe("serverqueryWaitTimeout",    array($this, "onTimeout"));
         \TeamSpeak3_Helper_Signal::getInstance()->subscribe("notifyEvent",               array($this, "onEvent"));
+
+        if (Config::getTS3ServerQuery("keepAliveInterval")) {
+            $this->keepAliveInterval = Config::getTS3ServerQuery("keepAliveInterval");
+        }
+        Log::debug(self::$TAG, "setting server connection keep-alive interval to " . $this->keepAliveInterval . " seconds");
     }
 
     /**
@@ -156,11 +166,16 @@ class TSServerConnections {
      */
     public function shutdown() {
         Log::debug(self::$TAG, "shutting down the teamspeak connection manager");
-        // close all server connections
-        foreach($this->ts3servers as $srv) {
-            $srv["server"]->request("quit");
+        try {
+            // close all server connections
+            foreach($this->ts3servers as $srv) {
+                $srv["server"]->request("quit");
+            }
+           $this->ts3servers = [];
         }
-        $this->ts3servers = [];
+        catch(\Exception $e) {
+            Log::error(self::$TAG, "an exception occured while quitting the connection to server, reason: " . $e->getMessage());
+        }
     }
 
     /**
@@ -171,7 +186,7 @@ class TSServerConnections {
     public function update($timeout = 0) {
         foreach($this->ts3servers as $srv) {
             $adapter = $srv["server"]->getAdapter();
-            if($adapter->getQueryLastTimestamp() < time() - 300) {
+            if($adapter->getQueryLastTimestamp() < time() - $this->keepAliveInterval) {
               //Log::debug(self::$TAG, "sending keep-alive command");
               $adapter->request("clientupdate");
             }
@@ -232,7 +247,7 @@ class TSServerConnections {
      * @return void
      */
     public function onTimeout($seconds, \TeamSpeak3_Adapter_ServerQuery $adapter) {
-        if($adapter->getQueryLastTimestamp() < time()-300) {
+        if($adapter->getQueryLastTimestamp() < time() - $this->keepAliveInterval) {
             //Log::debug(self::$TAG, "sending keep-alive command");
             $adapter->request("clientupdate");
         }
